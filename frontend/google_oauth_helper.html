@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Google OAuth Helper (ID Token + Auth Code)</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 24px;
+        line-height: 1.4;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin: 6px 0 12px 0;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 10px 14px;
+        margin-right: 8px;
+      }
+      .row {
+        margin-bottom: 16px;
+      }
+      .note {
+        color: #444;
+        font-size: 0.9em;
+      }
+      .box {
+        border: 1px solid #ddd;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Google OAuth Helper</h1>
+    <p class="note">
+      Use this page to get a Google ID token (for /auth/google/login) and an auth
+      code (for /auth/google/exchange).
+    </p>
+
+    <div class="box">
+      <div class="row">
+        <label>Google OAuth Client ID</label>
+        <input id="client_id" placeholder="1234567890-abc.apps.googleusercontent.com" />
+      </div>
+      <div class="row">
+        <label>Redirect URI (must match Google Console)</label>
+        <input id="redirect_uri" placeholder="http://localhost:9000/frontend/google_oauth_helper.html" />
+      </div>
+      <div class="row">
+        <label>Scopes (space separated)</label>
+        <input
+          id="scopes"
+          value="openid email profile https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/drive.file"
+        />
+      </div>
+      <button id="init_btn">Initialize Google Sign-In</button>
+      <button id="auth_code_btn">Get Auth Code (Docs Scopes)</button>
+      <div id="g_id_signin"></div>
+    </div>
+
+    <div class="box">
+      <h3>ID Token</h3>
+      <textarea id="id_token" rows="8" placeholder="ID token will appear here"></textarea>
+      <button id="copy_id_token">Copy ID Token</button>
+    </div>
+
+    <div class="box">
+      <h3>Auth Code</h3>
+      <textarea id="auth_code" rows="3" placeholder="Auth code will appear here"></textarea>
+      <button id="copy_auth_code">Copy Auth Code</button>
+    </div>
+
+    <script>
+      function qs(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      function showAuthCodeFromUrl() {
+        const code = qs("code");
+        if (code) {
+          document.getElementById("auth_code").value = code;
+        }
+      }
+
+      function buildAuthUrl() {
+        const clientId = document.getElementById("client_id").value.trim();
+        const redirectUri = document.getElementById("redirect_uri").value.trim();
+        const scopes = document.getElementById("scopes").value.trim();
+        const params = new URLSearchParams({
+          client_id: clientId,
+          redirect_uri: redirectUri,
+          response_type: "code",
+          access_type: "offline",
+          include_granted_scopes: "true",
+          prompt: "consent",
+          scope: scopes,
+        });
+        return "https://accounts.google.com/o/oauth2/v2/auth?" + params.toString();
+      }
+
+      document.getElementById("init_btn").addEventListener("click", () => {
+        const clientId = document.getElementById("client_id").value.trim();
+        if (!clientId) {
+          alert("Enter Client ID first.");
+          return;
+        }
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            document.getElementById("id_token").value = response.credential || "";
+          },
+        });
+        google.accounts.id.renderButton(document.getElementById("g_id_signin"), {
+          theme: "outline",
+          size: "large",
+        });
+      });
+
+      document.getElementById("auth_code_btn").addEventListener("click", () => {
+        const clientId = document.getElementById("client_id").value.trim();
+        const redirectUri = document.getElementById("redirect_uri").value.trim();
+        if (!clientId || !redirectUri) {
+          alert("Enter Client ID and Redirect URI first.");
+          return;
+        }
+        window.location.href = buildAuthUrl();
+      });
+
+      document.getElementById("copy_id_token").addEventListener("click", async () => {
+        const value = document.getElementById("id_token").value;
+        if (value) {
+          await navigator.clipboard.writeText(value);
+          alert("ID token copied.");
+        }
+      });
+
+      document.getElementById("copy_auth_code").addEventListener("click", async () => {
+        const value = document.getElementById("auth_code").value;
+        if (value) {
+          await navigator.clipboard.writeText(value);
+          alert("Auth code copied.");
+        }
+      });
+
+      showAuthCodeFromUrl();
+    </script>
+  </body>
+</html>
