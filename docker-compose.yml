@@ -13,7 +13,7 @@ services:
       - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
       - BACKEND_API_URL=http://backend:8000
     volumes:
-      - openclaw_data:/root/.openclaw
+      - openclaw_data:/home/node/.openclaw
     depends_on:
       - backend
 
