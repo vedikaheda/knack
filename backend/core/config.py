@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = "backend/.env"
         env_file_encoding = "utf-8"
+        extra= "allow"
 
 
 @lru_cache
