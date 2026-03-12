@@ -1,11 +1,6 @@
 ---
 name: generate_brd_from_transcript
 description: Generate a BRD from a Fireflies transcript link.
-inputs:
-  transcript_link:
-    type: string
-    description: Fireflies transcript link.
-    required: true
 ---
 
 When the user provides a Fireflies transcript link, call the backend to start the BRD workflow.
@@ -31,4 +26,3 @@ Body:
 
 Then reply: 
 \"Got it. I’m generating your BRD and will notify you when it’s ready.\"
-

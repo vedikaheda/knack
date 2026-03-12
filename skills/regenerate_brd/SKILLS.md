@@ -1,11 +1,6 @@
 ---
 name: regenerate_brd
 description: Regenerate a BRD for a transcript request.
-inputs:
-  transcript_request_id:
-    type: string
-    description: The transcript request ID to regenerate.
-    required: true
 ---
 
 When the user asks to regenerate a BRD, call the backend.
