@@ -1,5 +1,5 @@
 ---
-name: generate_brd
+name: generate_brd_from_transcript
 description: Use this skill when a user provides any Fireflies.ai meeting transcript link and asks to generate a Business Requirements Document (BRD) or extract requirements from the meeting.
 ---
 
