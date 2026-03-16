@@ -24,11 +24,19 @@ type BackendJobConfig = {
   CLAWDBOT_SERVICE_TOKEN?: string;
 };
 
+function getPluginEntryConfig(api: any): BackendJobConfig {
+  return (
+    api?.config?.plugins?.entries?.["backend-jobs"]?.config ??
+    {}
+  ) as BackendJobConfig;
+}
+
 function getConfig(api: any): Required<BackendJobConfig> {
-  const config = (api?.config ?? {}) as BackendJobConfig;
-  const BACKEND_API_URL = config.BACKEND_API_URL ?? process.env.BACKEND_API_URL;
+  const pluginConfig = getPluginEntryConfig(api);
+  const BACKEND_API_URL =
+    pluginConfig.BACKEND_API_URL ?? process.env.BACKEND_API_URL;
   const CLAWDBOT_SERVICE_TOKEN =
-    config.CLAWDBOT_SERVICE_TOKEN ?? process.env.CLAWDBOT_SERVICE_TOKEN;
+    pluginConfig.CLAWDBOT_SERVICE_TOKEN ?? process.env.CLAWDBOT_SERVICE_TOKEN;
 
   if (!BACKEND_API_URL) {
     throw new Error("BACKEND_API_URL is not configured for backend-jobs plugin");
