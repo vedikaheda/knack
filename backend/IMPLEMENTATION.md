@@ -36,7 +36,7 @@ This document describes what is implemented in the backend, what each file conta
 
 ### Job Module
 - `backend/modules/job/repository.py`
-  - Job execution persistence and idempotency by `trigger_event_id`.
+  - Job execution persistence plus callback routing envelope storage.
 - `backend/modules/job/service.py`
   - Job creation and status updates.
 - `backend/modules/job/schemas.py`
@@ -157,8 +157,8 @@ All UI endpoints use `Authorization: Bearer <google_id_token>` for auth.
 6) Workflow completes and Google Doc is created.
 
 ### Slack Flow
-1) OpenClaw calls `POST /jobs/execute` with `slack_event_id` + transcript link.
-2) Backend validates bot token and resolves Slack user -> internal user.
+1) OpenClaw calls `POST /jobs/execute` with transcript link plus callback routing (`channel` + `to`).
+2) Backend validates bot token and resolves Slack DM target -> internal user.
 3) Backend creates JobExecution and TranscriptRequest, then triggers workflow.
 4) Backend responds immediately and runs workflow in a background task.
 5) Backend calls OpenClaw hooks on completion/failure.

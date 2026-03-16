@@ -27,10 +27,9 @@ Example payload:
     "transcript_link": "https://app.fireflies.ai/view/..."
   },
   "context": {
-    "slack_user_id": "U123",
-    "conversation_id": "C456",
-    "thread_ts": "17123.456",
-    "slack_event_id": "E789"
+    "channel": "slack",
+    "to": "user:U123",
+    "account_id": "default"
   }
 }
 ```
@@ -40,7 +39,7 @@ Supported job types:
 - `regenerate_brd` (requires `transcript_request_id`)
 
 Notes:
-- Idempotency is enforced using `slack_event_id`.
+- OpenClaw supplies the callback routing envelope through `channel` and `to`.
 - Slack never calls `/api/v1/workflows/*` directly.
 - The backend returns immediately; workflow runs in a background task.
 

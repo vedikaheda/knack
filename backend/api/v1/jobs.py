@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 
 def _build_openclaw_payload(execution, event_type: str) -> dict:
     context = execution.context or {}
-    conversation_id = context.get("conversation_id")
-    if not conversation_id:
-        raise OpenClawHookError("Missing conversation_id for OpenClaw delivery")
+    channel = context.get("channel")
+    callback_to = context.get("to")
+    account_id = context.get("account_id")
+    if not channel or not callback_to:
+        raise OpenClawHookError("Missing channel or to for OpenClaw delivery")
 
     google_doc_id = context.get("google_doc_id")
     google_doc_url = (
@@ -38,14 +40,32 @@ def _build_openclaw_payload(execution, event_type: str) -> dict:
         if execution.last_error:
             message = f"Workflow failed: {execution.last_error}"
 
-    return {
+    payload = {
         "message": message,
         "name": event_type,
         "deliver": True,
-        "channel": "slack",
-        "to": conversation_id,
+        "channel": channel,
+        "to": callback_to,
         "wakeMode": "now",
     }
+    if account_id:
+        payload["accountId"] = account_id
+    return payload
+
+
+def _extract_slack_user_id(callback_to: str) -> str:
+    if not callback_to.startswith("user:"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only Slack DM callback targets are supported",
+        )
+    slack_user_id = callback_to.removeprefix("user:")
+    if not slack_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid callback target",
+        )
+    return slack_user_id
 
 
 def _run_workflow_job(job_id: str, execution_id: str) -> None:
@@ -94,14 +114,20 @@ def execute_job(
     if payload.job not in {"create_brd_from_transcript", "regenerate_brd"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported job")
 
-    slack_user_id = payload.context.get("slack_user_id")
-    slack_event_id = payload.context.get("slack_event_id")
-    conversation_id = payload.context.get("conversation_id")
-    if not slack_user_id or not slack_event_id or not conversation_id:
+    channel = payload.context.get("channel")
+    callback_to = payload.context.get("to")
+    account_id = payload.context.get("account_id")
+    if not channel or not callback_to:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing slack_user_id, slack_event_id, or conversation_id",
+            detail="Missing channel or to",
         )
+    if channel != "slack":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported callback channel",
+        )
+    slack_user_id = _extract_slack_user_id(callback_to)
 
     user_service = UserService()
     user = user_service.get_by_external_identity(db, "slack", slack_user_id)
@@ -109,16 +135,6 @@ def execute_job(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     job_service = JobService()
-    existing = job_service.get_by_trigger_event_id(db, slack_event_id)
-    if existing:
-        return {
-            "status": "accepted",
-            "job_execution_id": str(existing.id),
-            "workflow_execution_id": str(existing.workflow_execution_id)
-            if existing.workflow_execution_id
-            else None,
-        }
-
     request_service = TranscriptRequestService()
     if payload.job == "create_brd_from_transcript":
         transcript_link = payload.arguments.get("transcript_link")
@@ -146,10 +162,13 @@ def execute_job(
         job_type=payload.job,
         user_id=str(user.id),
         trigger_source="slack",
-        trigger_event_id=slack_event_id,
+        trigger_event_id=None,
         arguments=payload.arguments,
         external_user_id=slack_user_id,
         provider="slack",
+        callback_channel=channel,
+        callback_to=callback_to,
+        callback_account_id=account_id,
     )
 
     workflow_service = WorkflowService()

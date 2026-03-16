@@ -22,6 +22,9 @@ class JobService:
         arguments: dict | None,
         external_user_id: str | None = None,
         provider: str | None = None,
+        callback_channel: str | None = None,
+        callback_to: str | None = None,
+        callback_account_id: str | None = None,
     ):
         return self.repo.create(
             db,
@@ -32,6 +35,9 @@ class JobService:
             arguments,
             external_user_id=external_user_id,
             provider=provider,
+            callback_channel=callback_channel,
+            callback_to=callback_to,
+            callback_account_id=callback_account_id,
         )
 
     def set_status(self, db: Session, job_id: str, status: str):

@@ -2,10 +2,9 @@ import { callBackendJob } from "../lib/callBackendJob";
 
 type RegenerateBrdArgs = {
   transcript_request_id: string;
-  slack_user_id?: string;
-  conversation_id?: string;
-  thread_ts?: string;
-  slack_event_id?: string;
+  channel?: string;
+  to?: string;
+  account_id?: string;
 };
 
 export function registerRegenerateBrdTool(api: any) {
@@ -19,10 +18,9 @@ export function registerRegenerateBrdTool(api: any) {
           type: "string",
           description: "Internal transcript request identifier"
         },
-        slack_user_id: { type: "string" },
-        conversation_id: { type: "string" },
-        thread_ts: { type: "string" },
-        slack_event_id: { type: "string" }
+        channel: { type: "string" },
+        to: { type: "string" },
+        account_id: { type: "string" }
       },
       required: ["transcript_request_id"]
     },
@@ -32,10 +30,9 @@ export function registerRegenerateBrdTool(api: any) {
         "regenerate_brd",
         { transcript_request_id: params.transcript_request_id },
         {
-          slack_user_id: params.slack_user_id,
-          conversation_id: params.conversation_id,
-          thread_ts: params.thread_ts,
-          slack_event_id: params.slack_event_id,
+          channel: params.channel,
+          to: params.to,
+          account_id: params.account_id,
         }
       );
 

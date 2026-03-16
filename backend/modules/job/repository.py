@@ -24,6 +24,9 @@ class JobRepository:
         arguments: dict | None,
         external_user_id: str | None = None,
         provider: str | None = None,
+        callback_channel: str | None = None,
+        callback_to: str | None = None,
+        callback_account_id: str | None = None,
     ) -> JobExecution:
         job = JobExecution(
             job_type=job_type,
@@ -33,6 +36,9 @@ class JobRepository:
             arguments=arguments,
             external_user_id=external_user_id,
             provider=provider,
+            callback_channel=callback_channel,
+            callback_to=callback_to,
+            callback_account_id=callback_account_id,
             status="ACCEPTED",
         )
         db.add(job)

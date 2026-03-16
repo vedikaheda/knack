@@ -30,9 +30,14 @@ export function registerGenerateReviewsTool(api: any) {
         hasOnUpdate: Boolean(onUpdate),
         ctx: safeSerialize(ctx),
         apiConfigKeys: Object.keys(api?.config ?? {}),
-        pluginEntryConfig: safeSerialize(
-          api?.config?.plugins?.entries?.["backend-jobs"]?.config ?? null
-        ),
+        pluginEntryConfig: {
+          BACKEND_API_URL:
+            api?.config?.plugins?.entries?.["backend-jobs"]?.config?.BACKEND_API_URL ?? null,
+          CLAWDBOT_SERVICE_TOKEN:
+            api?.config?.plugins?.entries?.["backend-jobs"]?.config?.CLAWDBOT_SERVICE_TOKEN
+              ? "[REDACTED]"
+              : null,
+        },
       };
 
       return {

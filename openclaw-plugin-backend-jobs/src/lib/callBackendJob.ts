@@ -6,10 +6,9 @@ const ALLOWED_JOBS = new Set([
 type BackendJobArguments = Record<string, unknown>;
 
 type BackendJobContext = {
-  slack_user_id?: string;
-  conversation_id?: string;
-  thread_ts?: string;
-  slack_event_id?: string;
+  channel?: string;
+  to?: string;
+  account_id?: string;
 };
 
 type BackendJobResponse = {
