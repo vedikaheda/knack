@@ -1,0 +1,27 @@
+{
+  "id": "backend-jobs",
+  "name": "Backend Jobs",
+  "version": "0.1.0",
+  "description": "OpenClaw tools for triggering backend job workflows",
+  "entry": "src/index.ts",
+  "skills": [
+    "skills"
+  ],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "BACKEND_API_URL": {
+        "type": "string",
+        "description": "Base URL for the backend service"
+      },
+      "CLAWDBOT_SERVICE_TOKEN": {
+        "type": "string",
+        "description": "Bearer token used when calling the backend jobs API"
+      }
+    },
+    "required": [
+      "BACKEND_API_URL",
+      "CLAWDBOT_SERVICE_TOKEN"
+    ]
+  }
+}

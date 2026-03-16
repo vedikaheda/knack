@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-plugin-backend-jobs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenClaw plugin for backend job execution",
+  "main": "src/index.ts"
+}

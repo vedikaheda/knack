@@ -14,7 +14,7 @@ services:
       - BACKEND_API_URL=http://backend:8000
     volumes:
       - openclaw_data:/home/node/.openclaw
-      - ./skills:/app/skills
+      - ./openclaw-plugin-backend-jobs:/home/node/.openclaw/workspace-knack/openclaw-plugin-backend-jobs
     depends_on:
       - backend
 
