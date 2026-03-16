@@ -3,7 +3,6 @@
   "name": "Backend Jobs",
   "version": "0.1.0",
   "description": "OpenClaw tools for triggering backend job workflows",
-  "entry": "src/index.ts",
   "skills": [
     "skills"
   ],

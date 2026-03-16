@@ -4,5 +4,10 @@
   "private": true,
   "type": "module",
   "description": "OpenClaw plugin for backend job execution",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
 }
