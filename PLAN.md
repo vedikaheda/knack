@@ -100,7 +100,7 @@ V1.1 prioritizes correctness, determinism, recoverability, and clear module boun
 
 1. ClawDBot resolves intent and calls `POST /api/v1/jobs/execute`
 2. Backend authenticates bot token
-3. Backend resolves Slack user -> internal user
+3. Backend resolves the Slack DM callback target -> Slack user -> internal user
 4. Backend creates Job Execution (trigger_source=slack)
 5. Backend triggers workflow GenerateBRDFromTranscriptLink
 6. On completion or failure, backend calls ClawDBot webhook
@@ -242,8 +242,9 @@ A Job Execution represents a single intent execution and maps to exactly one wor
 
 ### Idempotency
 
-- `trigger_event_id` (Slack event id) is used to ensure idempotent job creation.
-- If a job with the same `trigger_event_id` exists, return the existing job/workflow ids.
+- UI jobs are not idempotent.
+- Slack jobs currently use callback routing, not Slack event id based idempotency.
+- If idempotency is reintroduced later, it must use a trusted OpenClaw-provided correlation identifier, not model-guessed metadata.
 
 ---
 
@@ -266,10 +267,9 @@ Request:
     "transcript_link": "https://app.fireflies.ai/view/..."
   },
   "context": {
-    "slack_user_id": "U123",
-    "conversation_id": "C456",
-    "thread_ts": "17123.456",
-    "slack_event_id": "E789"
+    "channel": "slack",
+    "to": "user:U123",
+    "account_id": "default"
   }
 }
 ```
@@ -322,7 +322,8 @@ Payload:
   "name": "workflow.completed",
   "deliver": true,
   "channel": "slack",
-  "to": "C456",
+  "to": "user:U123",
+  "accountId": "default",
   "wakeMode": "now"
 }
 ```
@@ -366,6 +367,7 @@ Used only for:
 ## 11.3 OpenClaw Skill Behavior (NEW)
 
 - Skills map to business intent, not raw endpoints.
+- Skills extract callback routing from trusted inbound metadata exposed by OpenClaw.
 - Skills call `POST /api/v1/jobs/execute` and return immediately:
   - `status=PROCESSING`
   - `job_execution_id`
@@ -552,11 +554,13 @@ backend/
 - job_type (create_brd_from_transcript | regenerate_brd)
 - user_id
 - trigger_source (slack | ui | api)
-- trigger_event_id (slack_event_id)
+- trigger_event_id (reserved for future trusted correlation id, nullable)
 - arguments (JSON)
-- external_user_id (Slack user id for callbacks)
+- external_user_id (Slack user id resolved from DM callback target)
 - provider (slack)
-- callback_url (internal OpenClaw webhook)
+- callback_channel (slack)
+- callback_to (`user:<slack_user_id>`)
+- callback_account_id (OpenClaw account id, optional)
 - status (ACCEPTED | RUNNING | COMPLETED | FAILED)
 - workflow_execution_id
 - created_at

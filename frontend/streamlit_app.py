@@ -172,8 +172,23 @@ def render_fireflies_connect() -> None:
             st.error(f"Error: {resp.status_code} {resp.text}")
 
 
+def render_slack_link() -> None:
+    st.subheader("3) Link Slack (Required for Slack BRD requests)")
+    st.caption("Enter your Slack user ID so Slack requests can be mapped to your account.")
+    slack_user_id = st.text_input("Slack User ID", placeholder="U0123456789")
+    if st.button("Link Slack"):
+        payload = {"slack_user_id": slack_user_id}
+        resp = api_request(
+            "POST", "/users/link-slack", st.session_state.auth_token, payload
+        )
+        if resp.status_code == 200:
+            st.success("Slack account linked.")
+        else:
+            st.error(f"Error: {resp.status_code} {resp.text}")
+
+
 def render_transcript_submit() -> None:
-    st.subheader("3) Submit Transcript Link")
+    st.subheader("4) Submit Transcript Link")
     source_link = st.text_input("Fireflies Transcript Link", placeholder="https://app.fireflies.ai/view/...")
     if st.button("Generate BRD"):
         payload = {"source_link": source_link}
@@ -245,6 +260,11 @@ def main() -> None:
     if st.session_state.auth_token:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         render_fireflies_connect()
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.write("")
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        render_slack_link()
         st.markdown("</div>", unsafe_allow_html=True)
         st.write("")
 
