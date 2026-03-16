@@ -1,5 +1,5 @@
 {
-  "name": "openclaw-plugin-backend-jobs",
+  "name": "backend-jobs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
