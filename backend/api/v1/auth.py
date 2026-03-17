@@ -5,7 +5,7 @@ from ..deps import get_current_user
 from ...core.config import get_settings
 from ...core.database import get_db
 from ...modules.auth.schemas import GoogleLoginRequest, GoogleExchangeRequest
-from ...modules.auth.service import AuthService
+from ...modules.auth.service import AuthService, OAuthStateError
 from ...modules.user.schemas import FirefliesKeyRequest
 from ...modules.user.service import UserService
 from ...modules.integration.fireflies import FirefliesClient
@@ -89,12 +89,15 @@ def google_callback_login(request: Request, code: str, db: Session = Depends(get
 
 
 @router.get("/google/callback/docs")
-def google_callback_docs(request: Request, code: str, db: Session = Depends(get_db)):
+def google_callback_docs(request: Request, code: str, state: str, db: Session = Depends(get_db)):
     auth_service = AuthService()
     user_service = UserService()
     settings = get_settings()
     redirect_uri = settings.google_oauth_callback_docs
-    tokens = auth_service.exchange_code_for_tokens(code, redirect_uri)
+    try:
+        tokens = auth_service.exchange_code_for_tokens(code, redirect_uri, state=state)
+    except OAuthStateError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     id_token = tokens.get("id_token")
     if not id_token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing id_token")
