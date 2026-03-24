@@ -12,9 +12,9 @@ services:
       SLACK_APP_TOKEN: ${SLACK_APP_TOKEN}
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
     volumes:
-      - openclaw_data:/home/node/.openclaw
-      - ./tools/knack-v2:/home/node/.openclaw/workspace-knack/knack-v2-plugin
-      # - ./tools/knack-v2/openclaw.json:/home/node/.openclaw/openclaw.json:ro
+      - openclaw_data_v2:/home/node/.openclaw
+      - ./tools/knack-v2:/home/node/.openclaw/workspace/knack-v2-plugin
+      - ./openclaw.json:/home/node/.openclaw/openclaw.json
     depends_on:
       - proof
 
@@ -30,4 +30,4 @@ services:
       - "4000:4000"
 
 volumes:
-  openclaw_data:
+  openclaw_data_v2:

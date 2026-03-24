@@ -6,16 +6,7 @@
         "mode": "safeguard"
       },
       "maxConcurrent": 4
-    },
-    "list": [
-      {
-        "id": "knack-v2",
-        "default": true,
-        "name": "Knack V2",
-        "workspace": "/home/node/.openclaw/workspace-knack",
-        "model": "openai/gpt-4o"
-      }
-    ]
+    }
   },
   "tools": {
     "profile": "full"
@@ -34,7 +25,7 @@
     "enabled": true,
     "load": {
       "paths": [
-        "/home/node/.openclaw/workspace-knack/knack-v2-plugin"
+        "/home/node/.openclaw/workspace/knack-v2-plugin"
       ]
     },
     "allow": [

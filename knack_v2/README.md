@@ -39,7 +39,7 @@ Phase 2:
 
 ## Running V2
 
-1. Copy `knack_v2/openclaw.json.example` to `knack_v2/tools/knack-v2/openclaw.json`
+1. Copy `knack_v2/openclaw.json.example` to `knack_v2/openclaw.json`
 2. Fill in:
    - `FIREFLIES_API_KEY`
    - `PROOF_BASE_URL`
@@ -58,7 +58,9 @@ This does not replace the root compose file.
 
 Locally, plugin-specific files live under `tools/knack-v2` so each plugin can keep its own config and assets without mixing with the app-level files.
 
-`./tools/knack-v2/openclaw.json:/home/node/.openclaw/openclaw.json:ro` means your local `openclaw.json` becomes the container's main OpenClaw config file, and `:ro` makes that mount read-only.
+This setup uses OpenClaw's default workspace at `/home/node/.openclaw/workspace`.
+
+`./openclaw.json:/home/node/.openclaw/openclaw.json` means your local `openclaw.json` becomes the container's main OpenClaw config file.
 
 The intended internal Proof URL for the plugin is `http://proof:4000`.
 
