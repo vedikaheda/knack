@@ -1,6 +1,11 @@
-﻿# Implementation Overview (Backend)
+# Implementation Overview (Backend)
 
-This document describes what is implemented in the backend, what each file contains, and the end-to-end process flow under NEW_PLAN.md (V1.1).
+This document describes the backend as it exists today.
+
+It is a current-state implementation reference, not an architecture source of truth.
+If this document conflicts with `PLAN.md`, `PLAN.md` wins.
+
+Use this file to understand what is already implemented before changing code.
 
 ## 1) Implemented Modules and Responsibilities
 
@@ -8,6 +13,7 @@ This document describes what is implemented in the backend, what each file conta
 - `backend/modules/auth/service.py`
   - Verifies Google `id_token` using official Google libraries.
   - Exchanges OAuth authorization code for tokens.
+  - Stores OAuth PKCE verifier state for the docs callback flow.
   - Verifies OpenClaw service token.
 - `backend/modules/auth/schemas.py`
   - Request schemas for Google login and OAuth code exchange.
@@ -51,6 +57,7 @@ This document describes what is implemented in the backend, what each file conta
     - Link -> transcript id parsing
 - `backend/modules/integration/openclaw.py`
   - Sends workflow outcome hooks to OpenClaw.
+  - Current behavior: completion/failure hooks only.
 
 ### AI / BRD Module
 - `backend/modules/ai_brd/prompts.py`
@@ -75,11 +82,11 @@ This document describes what is implemented in the backend, what each file conta
   - Tracks completed steps in `context` for idempotency.
 - `backend/modules/workflow/steps.py`
   - Implements all steps:
-    - VALIDATE_REQUEST
-    - ENSURE_TRANSCRIPT
-    - GENERATE_BRD
-    - CREATE_DOCUMENT
-    - LINK_DOCUMENT
+    - `VALIDATE_REQUEST`
+    - `ENSURE_TRANSCRIPT`
+    - `GENERATE_BRD`
+    - `CREATE_DOCUMENT`
+    - `LINK_DOCUMENT`
 - `backend/modules/workflow/service.py`
   - Creates and runs workflow executions.
 - `backend/modules/workflow/repository.py`
@@ -118,6 +125,8 @@ This document describes what is implemented in the backend, what each file conta
 ### Job endpoint (Slack)
 - `POST /api/v1/jobs/execute`
   - Bot-authenticated job execution for OpenClaw.
+  - Accepts callback routing through `context.channel`, `context.to`, and optional `context.account_id`.
+  - Persists routing metadata for later completion/failure delivery.
 
 All UI endpoints use `Authorization: Bearer <google_id_token>` for auth.
 
@@ -136,34 +145,54 @@ All UI endpoints use `Authorization: Bearer <google_id_token>` for auth.
 
 ## 4) Models
 
-- `backend/models/user.py` — users
-- `backend/models/user_integration.py` — Fireflies/Google secrets
-- `backend/models/user_external_identity.py` — Slack mapping
-- `backend/models/transcript_request.py` — transcript requests
-- `backend/models/transcript.py` — transcripts
-- `backend/models/document.py` — documents
-- `backend/models/document_section.py` — document sections
-- `backend/models/job_execution.py` — job executions
-- `backend/models/workflow.py` — workflow executions
+- `backend/models/user.py` - users
+- `backend/models/user_integration.py` - Fireflies/Google secrets
+- `backend/models/user_external_identity.py` - Slack mapping
+- `backend/models/transcript_request.py` - transcript requests
+- `backend/models/transcript.py` - transcripts
+- `backend/models/document.py` - documents
+- `backend/models/document_section.py` - document sections
+- `backend/models/job_execution.py` - job executions
+- `backend/models/workflow.py` - workflow executions
 
 ## 5) End-to-End Process Flow
 
 ### UI Flow
-1) User logs in with Google OAuth and sends `id_token` to `POST /auth/google/login`.
-2) UI exchanges OAuth code via `POST /auth/google/exchange`, storing Google tokens.
-3) User connects Fireflies key via `POST /auth/fireflies/connect`.
-4) User submits transcript link via `POST /transcript_requests`.
-5) Backend creates TranscriptRequest + JobExecution and triggers workflow.
-6) Workflow completes and Google Doc is created.
+1. User logs in with Google OAuth and sends `id_token` to `POST /auth/google/login`.
+2. UI exchanges OAuth code via `POST /auth/google/exchange`, storing Google tokens.
+3. User connects Fireflies key via `POST /auth/fireflies/connect`.
+4. User submits transcript link via `POST /transcript_requests`.
+5. Backend creates `TranscriptRequest` + `JobExecution` and triggers workflow.
+6. Workflow completes and Google Doc is created.
 
 ### Slack Flow
-1) OpenClaw calls `POST /jobs/execute` with transcript link plus callback routing (`channel` + `to`).
-2) Backend validates bot token and resolves Slack DM target -> internal user.
-3) Backend creates JobExecution and TranscriptRequest, then triggers workflow.
-4) Backend responds immediately and runs workflow in a background task.
-5) Backend calls OpenClaw hooks on completion/failure.
+1. OpenClaw calls `POST /jobs/execute` with transcript link plus callback routing (`channel` + `to`).
+2. Backend validates bot token and resolves Slack DM target -> internal user.
+3. Backend creates `JobExecution` and `TranscriptRequest`, then triggers workflow.
+4. Backend responds immediately and runs workflow in a background task.
+5. The immediate "started" acknowledgement is owned by the OpenClaw tool/skill path, not by a backend webhook.
+6. Backend calls OpenClaw hooks only on completion/failure.
 
 ## 6) Notes / Gaps
 
-- No migrations are present; DB schema is defined in models only.
+- SQL migration files exist under `backend/db/migrations/`, but they are not auto-applied by the current Docker startup path.
 - Tests are placeholders.
+- The OAuth PKCE verifier store is currently in-process memory, which is acceptable for the current single-backend deployment but not for multi-instance deployments.
+
+## 7) Documentation Workflow For New Features
+
+For new feature work in this repository:
+
+1. Read `AGENTS.md`.
+2. Read `PLAN.md` fully.
+3. Read the feature task brief such as `task.md`.
+4. Read this file for current implementation details.
+5. Then inspect the relevant code.
+
+Recommended practice:
+
+- Keep `PLAN.md` stable and architecture-focused.
+- Update this file when implementation behavior changes materially.
+- Add or update a task brief for each non-trivial feature before implementation starts.
+- Put business intent and user-visible behavior in skill docs.
+- Keep transport, secrets, validation, and retries in backend/plugin code rather than in prompts alone.

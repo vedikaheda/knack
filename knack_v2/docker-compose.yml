@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  openclaw:
+    image: ghcr.io/openclaw/openclaw:2026.3.1
+    container_name: knack_v2_openclaw
+    restart: unless-stopped
+    environment:
+      OPENCLAW_ENV: production
+      SLACK_ENABLED: ${SLACK_ENABLED:-true}
+      SLACK_MODE: socket
+      SLACK_APP_TOKEN: ${SLACK_APP_TOKEN}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+    volumes:
+      - openclaw_data:/home/node/.openclaw
+      - ./tools/knack-v2:/home/node/.openclaw/workspace-knack/knack-v2-plugin
+      # - ./tools/knack-v2/openclaw.json:/home/node/.openclaw/openclaw.json:ro
+    depends_on:
+      - proof
+
+  proof:
+    build:
+      context: ./proof
+      dockerfile: Dockerfile
+      args:
+        PROOF_GIT_REF: ${PROOF_GIT_REF:-main}
+    container_name: knack_v2_proof
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+
+volumes:
+  openclaw_data:

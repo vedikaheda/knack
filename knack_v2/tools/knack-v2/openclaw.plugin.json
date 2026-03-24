@@ -1,0 +1,34 @@
+{
+  "id": "knack-v2",
+  "name": "Knack V2",
+  "version": "0.1.0",
+  "description": "OpenClaw tools for Fireflies transcript retrieval and Proof document creation",
+  "skills": [
+    "skills"
+  ],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "FIREFLIES_API_KEY": {
+        "type": "string",
+        "description": "Fireflies API key used to fetch transcript data"
+      },
+      "PROOF_BASE_URL": {
+        "type": "string",
+        "description": "Base URL for the Proof deployment"
+      },
+      "PROOF_OWNER_SECRET_STORE_PATH": {
+        "type": "string",
+        "description": "Local JSON file used to persist Proof owner secrets"
+      },
+      "KNACK_AUDIT_LOG_PATH": {
+        "type": "string",
+        "description": "Append-only JSONL audit log path"
+      }
+    },
+    "required": [
+      "FIREFLIES_API_KEY",
+      "PROOF_BASE_URL"
+    ]
+  }
+}

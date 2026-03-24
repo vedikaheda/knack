@@ -29,9 +29,7 @@ def _build_openclaw_payload(execution, event_type: str) -> dict:
         f"https://docs.google.com/document/d/{google_doc_id}/edit" if google_doc_id else None
     )
 
-    if event_type == "workflow.processing_started":
-        message = "Got it! I'm generating your BRD. I'll notify you when it's ready."
-    elif event_type == "workflow.completed":
+    if event_type == "workflow.completed":
         message = (
             f"Your BRD is ready: {google_doc_url}" if google_doc_url else "Your BRD is ready."
         )
@@ -178,15 +176,6 @@ def execute_job(
     workflow_service.update_context(db, str(execution.id), payload.context)
     job_service.set_workflow_execution_id(db, str(job.id), str(execution.id))
     job_service.set_status(db, str(job.id), "RUNNING")
-
-    try:
-        payload_hook = _build_openclaw_payload(execution, "workflow.processing_started")
-        send_hook(payload_hook)
-    except OpenClawHookError as exc:
-        logger.error("OpenClaw hook failed: %s", exc)
-        context = execution.context or {}
-        context["webhook_error"] = str(exc)
-        workflow_service.update_context(db, str(execution.id), context)
 
     background_tasks.add_task(_run_workflow_job, str(job.id), str(execution.id))
 

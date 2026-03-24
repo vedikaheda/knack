@@ -1,0 +1,13 @@
+{
+  "name": "knack-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenClaw plugin for Fireflies transcript ingestion and Proof document creation",
+  "main": "src/index.ts",
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

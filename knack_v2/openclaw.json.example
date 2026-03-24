@@ -1,0 +1,58 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/home/node/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4
+    },
+    "list": [
+      {
+        "id": "knack-v2",
+        "default": true,
+        "name": "Knack V2",
+        "workspace": "/home/node/.openclaw/workspace-knack",
+        "model": "openai/gpt-4o"
+      }
+    ]
+  },
+  "tools": {
+    "profile": "full"
+  },
+  "channels": {
+    "slack": {
+      "mode": "socket",
+      "enabled": true,
+      "userTokenReadOnly": true,
+      "groupPolicy": "allowlist",
+      "streaming": "partial",
+      "nativeStreaming": true
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "load": {
+      "paths": [
+        "/home/node/.openclaw/workspace-knack/knack-v2-plugin"
+      ]
+    },
+    "allow": [
+      "knack-v2"
+    ],
+    "entries": {
+      "slack": {
+        "enabled": true
+      },
+      "knack-v2": {
+        "enabled": true,
+        "config": {
+          "FIREFLIES_API_KEY": "replace_me",
+          "PROOF_BASE_URL": "http://proof:4000",
+          "PROOF_OWNER_SECRET_STORE_PATH": ".local/proof/owner-secrets.json",
+          "KNACK_AUDIT_LOG_PATH": ".local/audit/events.jsonl"
+        }
+      }
+    }
+  }
+}

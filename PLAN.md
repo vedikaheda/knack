@@ -333,12 +333,17 @@ Events sent:
 - workflow.completed
 - workflow.failed
 
+Not sent:
+
+- workflow.processing_started
+
 Auth: Bearer token (shared secret)
 
 Behavior:
 
 - OpenClaw must send the Slack DM to the user on completion/failure.
-- The OpenClaw skill should return immediately after job creation and wait for this webhook.
+- The OpenClaw skill should return immediately after job creation with the one user-visible "started" acknowledgement and wait for the completion/failure webhook.
+- The backend must not send a second "started" notification via webhook, to avoid duplicate user-visible messages.
 - If you need a structured payload instead of a pre-built message, use `POST /hooks/<name>` with a mapping + transform to build the `/hooks/agent` call.
 
 ---
@@ -371,7 +376,10 @@ Used only for:
 - Skills call `POST /api/v1/jobs/execute` and return immediately:
   - `status=PROCESSING`
   - `job_execution_id`
-  - user-facing message
+  - one short user-facing acknowledgement
+- That acknowledgement must be natural and user-facing only.
+- It must not expose internal details such as tool names, hooks, payloads, background jobs, provider names, model names, or system metadata.
+- After that acknowledgement, the skill must not send a second "started" message.
 - OpenClaw waits for backend webhook to send the final DM.
 
 ## 11.4 OpenClaw Skills Format (NEW)
@@ -609,3 +617,32 @@ backend/
 - Backend owns all side effects
 - Slack never calls workflows directly
 - One Job maps to exactly one Workflow
+
+---
+
+## 18. Documentation Contract For Future Features
+
+The documentation hierarchy for future work is:
+
+1. `AGENTS.md`
+2. `PLAN.md`
+3. Feature-specific task brief such as `task.md`
+4. `backend/IMPLEMENTATION.md`
+
+Rules:
+
+- `PLAN.md` is the architecture source of truth.
+- `backend/IMPLEMENTATION.md` describes the current implementation only and must not override `PLAN.md`.
+- Every non-trivial new feature should have a feature-specific task brief before code is written.
+- Task briefs must describe the goal, owning module, allowed changes, constraints, and acceptance criteria.
+- If a feature spans multiple modules, the Workflow module must orchestrate it.
+
+Recommended task brief contents:
+
+- Goal
+- User-visible behavior
+- Owning module
+- APIs, tables, and integrations involved
+- Explicit non-goals
+- Acceptance criteria
+- Verification steps
