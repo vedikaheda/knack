@@ -2,15 +2,20 @@ const FIREFLIES_GRAPHQL_URL = "https://api.fireflies.ai/graphql";
 const FIREFLIES_HOSTS = new Set(["app.fireflies.ai", "fireflies.ai"]);
 
 type FirefliesTranscriptSentence = {
+  index?: number | null;
   speaker_name?: string | null;
+  speaker_id?: string | null;
   text?: string | null;
   start_time?: number | null;
+  end_time?: number | null;
 };
 
 type FirefliesTranscriptResponse = {
+  id?: string | null;
   title?: string | null;
-  dateString?: string | null;
-  summary?: string | null;
+  date?: string | null;
+  duration?: number | null;
+  meeting_link?: string | null;
   sentences?: FirefliesTranscriptSentence[] | null;
 };
 
@@ -42,13 +47,18 @@ export async function fetchTranscript(apiKey: string, transcriptId: string): Pro
   const query = `
     query Transcript($id: String!) {
       transcript(id: $id) {
+        id
         title
-        dateString
-        summary
+        date
+        duration
+        meeting_link
         sentences {
+          index
           speaker_name
+          speaker_id
           text
           start_time
+          end_time
         }
       }
     }

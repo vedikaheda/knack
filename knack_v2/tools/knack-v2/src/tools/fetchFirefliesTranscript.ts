@@ -36,8 +36,8 @@ export function registerFetchFirefliesTranscriptTool(api: any) {
         const result = {
           transcript_id: transcriptId,
           title: transcript.title ?? "Untitled meeting",
-          date: transcript.dateString ?? null,
-          summary: transcript.summary ?? null,
+          date: transcript.date ?? null,
+          summary: null,
           raw_transcript: rawTranscript,
           cleaned_transcript: cleanedTranscript,
         };
