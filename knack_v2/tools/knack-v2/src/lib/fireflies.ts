@@ -34,7 +34,15 @@ export function parseTranscriptId(link: string): string {
 
   const segments = url.pathname.split("/").filter(Boolean);
   const viewIndex = segments.findIndex((segment) => segment === "view");
-  const transcriptId = viewIndex >= 0 ? segments[viewIndex + 1] : segments.at(-1);
+  const rawTranscriptId = viewIndex >= 0 ? segments[viewIndex + 1] : segments.at(-1);
+
+  if (!rawTranscriptId) {
+    throw new Error("Invalid transcript link: could not parse transcript id");
+  }
+
+  const transcriptId = rawTranscriptId.includes("::")
+    ? rawTranscriptId.split("::").at(-1)
+    : rawTranscriptId;
 
   if (!transcriptId) {
     throw new Error("Invalid transcript link: could not parse transcript id");
