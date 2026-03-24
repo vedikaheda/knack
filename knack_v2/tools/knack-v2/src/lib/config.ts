@@ -6,7 +6,12 @@ type PluginConfig = {
 };
 
 function getPluginConfig(api: any): PluginConfig {
-  return api?.plugin?.config ?? api?.config ?? {};
+  return (
+    api?.plugin?.config ??
+    api?.config?.plugins?.entries?.["knack-v2"]?.config ??
+    api?.config ??
+    {}
+  );
 }
 
 export function requireConfig(api: any, key: keyof PluginConfig): string {

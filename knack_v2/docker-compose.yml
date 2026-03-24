@@ -13,8 +13,8 @@ services:
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
     volumes:
       - openclaw_data_v2:/home/node/.openclaw
+      - ./SOUL.md:/home/node/.openclaw/workspace/SOUL.md:ro
       - ./tools/knack-v2:/home/node/.openclaw/workspace/knack-v2-plugin
-      - ./openclaw.json:/home/node/.openclaw/openclaw.json
     depends_on:
       - proof
 

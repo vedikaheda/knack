@@ -20,6 +20,7 @@ Phase 2:
 
 - `PLAN.md`: source of truth for v2
 - `PROOF_INTEGRATION.md`: exact OpenClaw-to-Proof runtime contract
+- `SOUL.md`: workspace-level operating prompt for Knack
 - `docker-compose.yml`: standalone v2 runtime
 - `proof/`: self-hosted Proof container build
 - `tools/`: local container for OpenClaw plugin roots
@@ -61,6 +62,8 @@ Locally, plugin-specific files live under `tools/knack-v2` so each plugin can ke
 This setup uses OpenClaw's default workspace at `/home/node/.openclaw/workspace`.
 
 `./openclaw.json:/home/node/.openclaw/openclaw.json` means your local `openclaw.json` becomes the container's main OpenClaw config file.
+
+`./SOUL.md:/home/node/.openclaw/workspace/SOUL.md:ro` means the default workspace gets a persistent Knack identity file without needing a separate named agent workspace.
 
 The intended internal Proof URL for the plugin is `http://proof:4000`.
 
