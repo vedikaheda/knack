@@ -57,6 +57,10 @@ export function registerFetchFirefliesTranscriptTool(api: any) {
               type: "text",
               text: `Fetched transcript "${result.title}" and prepared it for BRD generation.`,
             },
+            {
+              type: "text",
+              text: `Transcript title: ${result.title}\nDate: ${result.date ?? "Unknown"}\n\nCleaned transcript:\n${cleanedTranscript}`,
+            },
           ],
           structuredContent: result,
         };
