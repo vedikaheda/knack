@@ -17,6 +17,10 @@
         "type": "string",
         "description": "Base URL for the Proof deployment"
       },
+      "PROOF_PUBLIC_URL": {
+        "type": "string",
+        "description": "Public browser-facing URL for the Proof editor"
+      },
       "PROOF_OWNER_SECRET_STORE_PATH": {
         "type": "string",
         "description": "Local JSON file used to persist Proof owner secrets"

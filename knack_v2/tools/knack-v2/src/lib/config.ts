@@ -1,6 +1,7 @@
 type PluginConfig = {
   FIREFLIES_API_KEY?: string;
   PROOF_BASE_URL?: string;
+  PROOF_PUBLIC_URL?: string;
   PROOF_OWNER_SECRET_STORE_PATH?: string;
   KNACK_AUDIT_LOG_PATH?: string;
 };

@@ -44,6 +44,7 @@ Phase 2:
 2. Fill in:
    - `FIREFLIES_API_KEY`
    - `PROOF_BASE_URL`
+   - `PROOF_PUBLIC_URL`
 3. Put plugin config directly in `openclaw.json` under `plugins.entries.knack-v2.config`
 4. Create an env file for Docker Compose with:
    - `SLACK_APP_TOKEN`
@@ -65,7 +66,12 @@ This setup uses OpenClaw's default workspace at `/home/node/.openclaw/workspace`
 
 `./SOUL.md:/home/node/.openclaw/workspace/SOUL.md:ro` means the default workspace gets a persistent Knack identity file without needing a separate named agent workspace.
 
-The intended internal Proof URL for the plugin is `http://proof:4000`.
+The intended internal Proof API URL for the plugin is `http://proof-api:4000`.
+
+The public browser URL for users should point at the Proof web service, for example:
+
+- `http://34.172.185.228:3000` for quick VM testing
+- `https://proof.yourdomain.com` once you put a reverse proxy/domain in front of it
 
 For reproducible Proof builds, set `PROOF_GIT_REF` to a pinned tag or commit instead of leaving it on `main`.
 
@@ -91,6 +97,12 @@ In practice:
 - send `tokenUrl` to the user when it is present
 - fall back to `shareUrl` if needed
 - never send `ownerSecret`
+
+For this split setup:
+
+- OpenClaw calls the Proof API at `PROOF_BASE_URL`
+- users open the browser-facing Proof editor at `PROOF_PUBLIC_URL`
+- the plugin rewrites returned Proof links from the internal API host to the public browser host before sending them back
 
 `tokenUrl` is the safest "just open this link" option because it already carries the document access token.
 

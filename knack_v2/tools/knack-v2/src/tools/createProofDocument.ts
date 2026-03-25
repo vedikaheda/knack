@@ -1,6 +1,6 @@
 import { appendAuditEvent } from "../lib/audit";
 import { getConfig, requireConfig } from "../lib/config";
-import { createProofDocument, storeProofOwnerSecret } from "../lib/proof";
+import { createProofDocument, rewriteProofUrl, storeProofOwnerSecret } from "../lib/proof";
 
 type CreateProofDocumentArgs = {
   title: string;
@@ -34,6 +34,7 @@ export function registerCreateProofDocumentTool(api: any) {
     async execute(_toolUseId: string, params: CreateProofDocumentArgs) {
       try {
         const baseUrl = requireConfig(api, "PROOF_BASE_URL");
+        const publicUrl = getConfig(api, "PROOF_PUBLIC_URL");
         const storePath = getConfig(
           api,
           "PROOF_OWNER_SECRET_STORE_PATH",
@@ -50,17 +51,20 @@ export function registerCreateProofDocumentTool(api: any) {
           throw new Error("Proof document creation failed: missing ownerSecret in response");
         }
 
+        const shareUrl = rewriteProofUrl(payload.shareUrl, publicUrl);
+        const tokenUrl = rewriteProofUrl(payload.tokenUrl, publicUrl);
+
         await storeProofOwnerSecret(storePath, {
           slug: payload.slug,
           title: params.title,
           ownerSecret: payload.ownerSecret,
           accessToken: payload.accessToken,
-          shareUrl: payload.shareUrl,
-          tokenUrl: payload.tokenUrl,
+          shareUrl,
+          tokenUrl,
           createdAt: new Date().toISOString(),
         });
 
-        const documentUrl = payload.tokenUrl ?? payload.shareUrl;
+        const documentUrl = tokenUrl ?? shareUrl;
 
         await appendAuditEvent(api, {
           event: "proof.create_document",
@@ -85,8 +89,8 @@ export function registerCreateProofDocumentTool(api: any) {
             slug: payload.slug,
             title: params.title,
             document_url: documentUrl,
-            share_url: payload.shareUrl ?? null,
-            token_url: payload.tokenUrl ?? null,
+            share_url: shareUrl ?? null,
+            token_url: tokenUrl ?? null,
             access_role: payload.accessRole ?? params.role ?? "commenter",
             owner_secret_stored: true,
           },

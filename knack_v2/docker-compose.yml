@@ -15,18 +15,33 @@ services:
       - openclaw_data_v2:/home/node/.openclaw
       - ./tools/knack-v2:/home/node/.openclaw/workspace/knack-v2-plugin
     depends_on:
-      - proof
+      - proof-api
 
-  proof:
+  proof-api:
     build:
       context: ./proof
       dockerfile: Dockerfile
       args:
         PROOF_GIT_REF: ${PROOF_GIT_REF:-main}
-    container_name: knack_v2_proof
+    container_name: knack_v2_proof_api
     restart: unless-stopped
+    command: ["npm", "run", "serve"]
     ports:
       - "4000:4000"
+
+  proof-web:
+    build:
+      context: ./proof
+      dockerfile: Dockerfile
+      args:
+        PROOF_GIT_REF: ${PROOF_GIT_REF:-main}
+    container_name: knack_v2_proof_web
+    restart: unless-stopped
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    ports:
+      - "3000:3000"
+    depends_on:
+      - proof-api
 
 volumes:
   openclaw_data_v2:

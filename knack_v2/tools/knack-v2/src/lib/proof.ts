@@ -55,6 +55,22 @@ export async function createProofDocument(
   return payload;
 }
 
+export function rewriteProofUrl(url: string | undefined, publicBaseUrl?: string): string | undefined {
+  if (!url || !publicBaseUrl) {
+    return url;
+  }
+
+  try {
+    const original = new URL(url);
+    const publicBase = new URL(publicBaseUrl);
+    original.protocol = publicBase.protocol;
+    original.host = publicBase.host;
+    return original.toString();
+  } catch {
+    return url;
+  }
+}
+
 export async function storeProofOwnerSecret(
   storePath: string,
   payload: StoredProofSecret
