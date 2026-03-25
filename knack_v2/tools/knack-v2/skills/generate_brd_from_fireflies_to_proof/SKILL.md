@@ -15,7 +15,7 @@ Use this skill when the user provides a Fireflies transcript URL and wants a BRD
 4. Make sure the BRD JSON includes every required top-level field listed below.
 5. Render that BRD JSON into a human-readable markdown BRD for Proof.
 6. Call `create_proof_document`.
-7. Return the final Proof document URL to the user.
+7. Return the final Proof document link to the user using the exact Slack-formatted link returned by the tool.
 
 ## BRD JSON Contract
 
@@ -184,6 +184,29 @@ After building the full BRD JSON object, render it into Proof markdown using thi
 ## Compliance And Security
 ```
 
+When rendering the section bodies for Proof:
+
+- Use headings plus short paragraphs.
+- Use plain `Label: value` lines where helpful.
+- Do not use markdown bullet lists such as `* item`, `- item`, or numbered lists like `1. item`.
+- Do not use nested list indentation.
+- If a section has multiple points, write them as short standalone lines or short paragraphs instead of list syntax.
+
+Example preferred style:
+
+```md
+## Document Info
+
+Title: Example BRD
+Version: v0.1
+Date: 2026-03-25
+
+## Business Objectives
+
+Objective 1: Enable direct server-to-server integration.
+Objective 2: Support both PDF and text summarization.
+```
+
 ## Tool Rules
 
 - Always fetch the transcript with `fetch_fireflies_transcript`.
@@ -198,5 +221,7 @@ After building the full BRD JSON object, render it into Proof markdown using thi
 Keep the user-facing response short:
 
 - confirm the BRD is ready
-- include the Proof document URL
+- use `structuredContent.slack_link` from `create_proof_document` exactly as returned
+- do not rewrite the link into a bare URL
+- do not shorten, summarize, or paraphrase the link
 - mention any important missing information only if the transcript was incomplete

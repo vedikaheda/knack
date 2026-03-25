@@ -8,6 +8,31 @@ type CreateProofDocumentArgs = {
   role?: string;
 };
 
+function normalizeProofMarkdown(markdown: string): string {
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const normalized = lines.map((line) => {
+    const numberedMatch = line.match(/^(\s*)(\d+)\.\s+(.+)$/);
+    if (numberedMatch) {
+      const [, indent, number, content] = numberedMatch;
+      return indent.length > 0
+        ? `Detail ${number}: ${content.trim()}`
+        : `Step ${number}: ${content.trim()}`;
+    }
+
+    const bulletMatch = line.match(/^(\s*)[*+-]\s+(.+)$/);
+    if (bulletMatch) {
+      const [, indent, content] = bulletMatch;
+      return indent.length > 0
+        ? `Detail: ${content.trim()}`
+        : `Item: ${content.trim()}`;
+    }
+
+    return line;
+  });
+
+  return normalized.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export function registerCreateProofDocumentTool(api: any) {
   api.registerTool({
     name: "create_proof_document",
@@ -42,7 +67,7 @@ export function registerCreateProofDocumentTool(api: any) {
         )!;
         const payload = await createProofDocument(
           baseUrl,
-          params.markdown,
+          normalizeProofMarkdown(params.markdown),
           params.title,
           params.role ?? "editor"
         );
@@ -89,6 +114,7 @@ export function registerCreateProofDocumentTool(api: any) {
             slug: payload.slug,
             title: params.title,
             document_url: documentUrl,
+            slack_link: documentUrl ? `<${documentUrl}|Open the BRD>` : null,
             share_url: shareUrl ?? null,
             token_url: tokenUrl ?? null,
             access_role: payload.accessRole ?? params.role ?? "commenter",
