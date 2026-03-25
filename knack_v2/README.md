@@ -66,9 +66,9 @@ This setup uses OpenClaw's default workspace at `/home/node/.openclaw/workspace`
 
 `./SOUL.md:/home/node/.openclaw/workspace/SOUL.md:ro` means the default workspace gets a persistent Knack identity file without needing a separate named agent workspace.
 
-The intended internal Proof API URL for the plugin is `http://proof-api:4000`.
+The intended internal Proof API URL for the plugin is `http://proof:4000`.
 
-The public browser URL for users should point at the Proof web service, for example:
+The public browser URL for users should point at the Proof web app on port `3000`, for example:
 
 - `http://34.172.185.228:3000` for quick VM testing
 - `https://proof.yourdomain.com` once you put a reverse proxy/domain in front of it
@@ -98,7 +98,7 @@ In practice:
 - fall back to `shareUrl` if needed
 - never send `ownerSecret`
 
-For this split setup:
+For this setup:
 
 - OpenClaw calls the Proof API at `PROOF_BASE_URL`
 - users open the browser-facing Proof editor at `PROOF_PUBLIC_URL`
