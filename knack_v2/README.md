@@ -49,6 +49,8 @@ Phase 2:
 4. Create an env file for Docker Compose with:
    - `SLACK_APP_TOKEN`
    - `SLACK_BOT_TOKEN`
+   - `PROOF_PUBLIC_ORIGIN`
+   - `PROOF_CORS_ALLOW_ORIGINS`
    - optional `PROOF_GIT_REF`
 5. Start only the v2 stack:
 
@@ -68,9 +70,9 @@ This setup uses OpenClaw's default workspace at `/home/node/.openclaw/workspace`
 
 The intended internal Proof API URL for the plugin is `http://proof:4000`.
 
-The public browser URL for users should point at the Proof web app on port `3000`, for example:
+The public browser URL for users should point at the Proof server on port `4000`, for example:
 
-- `http://34.172.185.228:3000` for quick VM testing
+- `http://34.172.185.228:4000` for quick VM testing
 - `https://proof.yourdomain.com` once you put a reverse proxy/domain in front of it
 
 For reproducible Proof builds, set `PROOF_GIT_REF` to a pinned tag or commit instead of leaving it on `main`.
@@ -103,6 +105,7 @@ For this setup:
 - OpenClaw calls the Proof API at `PROOF_BASE_URL`
 - users open the browser-facing Proof editor at `PROOF_PUBLIC_URL`
 - the plugin rewrites returned Proof links from the internal API host to the public browser host before sending them back
+- the Proof container itself uses `PROOF_PUBLIC_ORIGIN` and `PROOF_CORS_ALLOW_ORIGINS` so share pages and browser requests resolve against the public host instead of localhost defaults
 
 `tokenUrl` is the safest "just open this link" option because it already carries the document access token.
 

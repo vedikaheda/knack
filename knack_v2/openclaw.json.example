@@ -40,7 +40,7 @@
         "config": {
           "FIREFLIES_API_KEY": "replace_me",
           "PROOF_BASE_URL": "http://proof:4000",
-          "PROOF_PUBLIC_URL": "http://your-vm-ip:3000",
+          "PROOF_PUBLIC_URL": "http://your-vm-ip:4000",
           "PROOF_OWNER_SECRET_STORE_PATH": ".local/proof/owner-secrets.json",
           "KNACK_AUDIT_LOG_PATH": ".local/audit/events.jsonl"
         }

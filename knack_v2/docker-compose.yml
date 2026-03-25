@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   openclaw:
     image: ghcr.io/openclaw/openclaw:2026.3.1
@@ -25,14 +23,11 @@ services:
         PROOF_GIT_REF: ${PROOF_GIT_REF:-main}
     container_name: knack_v2_proof
     restart: unless-stopped
-    command:
-      [
-        "sh",
-        "-lc",
-        "npx concurrently -n api,web -c cyan,magenta \"npm run serve\" \"npm run dev -- --host 0.0.0.0 --port 3000\"",
-      ]
+    environment:
+      PORT: 4000
+      PROOF_PUBLIC_ORIGIN: ${PROOF_PUBLIC_ORIGIN}
+      PROOF_CORS_ALLOW_ORIGINS: ${PROOF_CORS_ALLOW_ORIGINS}
     ports:
-      - "3000:3000"
       - "4000:4000"
 
 volumes:
