@@ -25,12 +25,16 @@ services:
     restart: unless-stopped
     environment:
       PORT: 4000
+      DATABASE_PATH: /opt/proof-sdk/proof-share.db
       PROOF_PUBLIC_ORIGIN: ${PROOF_PUBLIC_ORIGIN}
       PROOF_PUBLIC_BASE_URL: ${PROOF_PUBLIC_BASE_URL}
       PROOF_CORS_ALLOW_ORIGINS: ${PROOF_CORS_ALLOW_ORIGINS}
       PROOF_COLLAB_SIGNING_SECRET: ${PROOF_COLLAB_SIGNING_SECRET}
+    volumes:
+      - proof_data:/opt/proof-sdk
     ports:
       - "4000:4000"
 
 volumes:
   openclaw_data_v2:
+  proof_data:
