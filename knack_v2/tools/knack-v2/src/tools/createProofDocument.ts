@@ -81,7 +81,7 @@ export function registerCreateProofDocumentTool(api: any) {
             {
               type: "text",
               text: documentUrl
-                ? `Created your Proof document: ${documentUrl}`
+                ? `Created your Proof document:\n<${documentUrl}|Open the BRD>`
                 : `Created your Proof document "${params.title}".`,
             },
           ],
