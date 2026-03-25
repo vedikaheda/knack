@@ -50,7 +50,9 @@ Phase 2:
    - `SLACK_APP_TOKEN`
    - `SLACK_BOT_TOKEN`
    - `PROOF_PUBLIC_ORIGIN`
+   - `PROOF_PUBLIC_BASE_URL`
    - `PROOF_CORS_ALLOW_ORIGINS`
+   - `PROOF_COLLAB_SIGNING_SECRET`
    - optional `PROOF_GIT_REF`
 5. Start only the v2 stack:
 
@@ -105,7 +107,8 @@ For this setup:
 - OpenClaw calls the Proof API at `PROOF_BASE_URL`
 - users open the browser-facing Proof editor at `PROOF_PUBLIC_URL`
 - the plugin rewrites returned Proof links from the internal API host to the public browser host before sending them back
-- the Proof container itself uses `PROOF_PUBLIC_ORIGIN` and `PROOF_CORS_ALLOW_ORIGINS` so share pages and browser requests resolve against the public host instead of localhost defaults
+- the Proof container itself uses `PROOF_PUBLIC_ORIGIN`, `PROOF_PUBLIC_BASE_URL`, and `PROOF_CORS_ALLOW_ORIGINS` so share pages, browser asset requests, and embedded collab websocket URLs resolve against the public host instead of localhost defaults
+- set `PROOF_COLLAB_SIGNING_SECRET` to a stable random value so collab/browser session signing survives restarts
 
 `tokenUrl` is the safest "just open this link" option because it already carries the document access token.
 
