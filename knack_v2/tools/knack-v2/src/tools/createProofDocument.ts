@@ -1,6 +1,11 @@
 import { appendAuditEvent } from "../lib/audit";
 import { getConfig, requireConfig } from "../lib/config";
-import { createProofDocument, rewriteProofUrl, storeProofOwnerSecret } from "../lib/proof";
+import {
+  createProofDocument,
+  parseProofUrl,
+  rewriteProofUrl,
+  storeProofOwnerSecret,
+} from "../lib/proof";
 import { storeTrackedProofDocument } from "../lib/proofTracking";
 
 type CreateProofDocumentArgs = {
@@ -84,6 +89,8 @@ export function registerCreateProofDocumentTool(api: any) {
 
         const shareUrl = rewriteProofUrl(payload.shareUrl, publicUrl);
         const tokenUrl = rewriteProofUrl(payload.tokenUrl, publicUrl);
+        const trackedToken =
+          payload.accessToken ?? (tokenUrl ? parseProofUrl(tokenUrl).token : undefined);
 
         await storeProofOwnerSecret(storePath, {
           slug: payload.slug,
@@ -110,11 +117,11 @@ export function registerCreateProofDocumentTool(api: any) {
           },
         });
 
-        if (payload.accessToken) {
+        if (trackedToken) {
           await storeTrackedProofDocument(trackedDocsPath, {
             slug: payload.slug,
             title: params.title,
-            token: payload.accessToken,
+            token: trackedToken,
             shareUrl,
             tokenUrl,
             createdAt,

@@ -9,7 +9,7 @@ function extractProofSlug(content: string): string | null {
 
 export function registerProofRoutingHook(api: any) {
   api.registerHook(
-    "message:sent",
+    "message_sent",
     async (event: any) => {
       if (event?.type !== "message" || event?.action !== "sent") {
         return;
