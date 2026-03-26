@@ -1,6 +1,6 @@
 import { appendAuditEvent } from "../lib/audit";
 import { getConfig, requireConfig } from "../lib/config";
-import { applyProofDocumentEditV2 } from "../lib/proof";
+import { applyProofDocumentEditV2, getProofSnapshot } from "../lib/proof";
 import { resolveProofTargetInput } from "../lib/proofTarget";
 
 type ApplyProofEditV2Args = {
@@ -54,13 +54,17 @@ export function registerApplyProofEditV2Tool(api: any) {
           params.operations,
           params.idempotencyKey
         );
+        const postEditSnapshot = await getProofSnapshot(baseUrl, target, agentId!);
 
         await appendAuditEvent(api, {
           event: "proof.apply_edit_v2",
           status: "success",
           details: {
             slug: target.slug,
+            baseRevision: params.baseRevision,
             operationCount: params.operations.length,
+            operations: params.operations,
+            postEditRevision: postEditSnapshot?.revision ?? null,
           },
         });
 
@@ -68,10 +72,13 @@ export function registerApplyProofEditV2Tool(api: any) {
           content: [
             {
               type: "text",
-              text: `Applied ${params.operations.length} edit v2 operation(s) to Proof document ${target.slug}.`,
+              text: `Applied ${params.operations.length} edit v2 operation(s) to Proof document ${target.slug}; fetched post-edit snapshot revision ${postEditSnapshot?.revision ?? "unknown"}.`,
             },
           ],
-          structuredContent: payload,
+          structuredContent: {
+            edit: payload,
+            postEditSnapshot,
+          },
         };
       } catch (error: any) {
         const message = error?.message ?? String(error);
@@ -80,6 +87,8 @@ export function registerApplyProofEditV2Tool(api: any) {
           event: "proof.apply_edit_v2",
           status: "failure",
           details: {
+            baseRevision: params.baseRevision,
+            operations: params.operations,
             error: message,
           },
         });
