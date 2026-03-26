@@ -116,8 +116,11 @@ async function triggerOpenClaw(doc, afterCursor) {
     channel: doc.routing?.channel || "slack",
     to: doc.routing?.to,
     accountId: doc.routing?.accountId || "default",
-    sessionKey: doc.routing?.sessionKey,
   };
+
+  if (doc.routing?.sessionKey) {
+    payload.sessionKey = doc.routing.sessionKey;
+  }
 
   const response = await fetch(OPENCLAW_HOOK_URL, {
     method: "POST",

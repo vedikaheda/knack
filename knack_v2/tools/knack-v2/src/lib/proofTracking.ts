@@ -6,6 +6,7 @@ export type ProofRouting = {
   to?: string;
   accountId?: string;
   sessionKey?: string;
+  conversationId?: string;
 };
 
 export type TrackedProofDocument = {

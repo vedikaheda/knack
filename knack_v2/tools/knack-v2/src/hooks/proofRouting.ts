@@ -10,13 +10,13 @@ function extractProofSlug(content: string): string | null {
 export function registerProofRoutingHook(api: any) {
   api.registerHook(
     "message_sent",
-    async (event: any) => {
-      if (event?.type !== "message" || event?.action !== "sent") {
+    async (event: any, ctx: any) => {
+      if (event?.success === false) {
         return;
       }
 
-      const channelId = event?.context?.channelId;
-      const content = String(event?.context?.content ?? "");
+      const channelId = ctx?.channelId;
+      const content = String(event?.content ?? "");
 
       if (channelId !== "slack" || !content.includes("/d/")) {
         return;
@@ -36,9 +36,10 @@ export function registerProofRoutingHook(api: any) {
       const updated = await updateTrackedProofDocument(trackedDocsPath, slug, {
         routing: {
           channel: channelId,
-          to: event?.context?.to ?? null,
-          accountId: event?.context?.accountId ?? "default",
+          to: event?.to ?? null,
+          accountId: ctx?.accountId ?? "default",
           sessionKey: event?.sessionKey ?? null,
+          conversationId: ctx?.conversationId ?? null,
         },
       });
 
@@ -48,9 +49,10 @@ export function registerProofRoutingHook(api: any) {
         details: {
           slug,
           session_key: event?.sessionKey ?? null,
-          to: event?.context?.to ?? null,
+          to: event?.to ?? null,
           channel: channelId,
-          account_id: event?.context?.accountId ?? "default",
+          account_id: ctx?.accountId ?? "default",
+          conversation_id: ctx?.conversationId ?? null,
           tracked_doc_found: Boolean(updated),
         },
       });
