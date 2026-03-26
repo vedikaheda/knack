@@ -44,6 +44,22 @@ function normalizeProofMarkdown(markdown: string): string {
   return normalized.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+function resolveRoutingTo(params: CreateProofDocumentArgs): string | undefined {
+  if (params.to) {
+    return params.to;
+  }
+
+  if (params.chat_id) {
+    return params.chat_id;
+  }
+
+  if (!params.from) {
+    return undefined;
+  }
+
+  return params.from.startsWith("user:") ? params.from : `user:${params.from}`;
+}
+
 export function registerCreateProofDocumentTool(api: any) {
   api.registerTool({
     name: "create_proof_document",
@@ -128,6 +144,7 @@ export function registerCreateProofDocumentTool(api: any) {
         });
 
         const documentUrl = tokenUrl ?? shareUrl;
+        const routingTo = resolveRoutingTo(params);
         const createdAt = new Date().toISOString();
         const watchDays = Number(getConfig(api, "KNACK_REVIEW_WATCH_DAYS", "7") ?? "7");
         const watchUntil = new Date(Date.now() + watchDays * 24 * 60 * 60 * 1000).toISOString();
@@ -148,7 +165,7 @@ export function registerCreateProofDocumentTool(api: any) {
           details: {
             slug: payload.slug,
             channel: params.channel ?? null,
-            to: params.to ?? null,
+            to: routingTo ?? null,
             from: params.from ?? null,
             chat_id: params.chat_id ?? null,
             accountId: params.accountId ?? null,
@@ -168,10 +185,10 @@ export function registerCreateProofDocumentTool(api: any) {
             lastEventCursor: 0,
             enabled: true,
             routing:
-              params.channel || params.to || params.accountId
+              params.channel || routingTo || params.accountId
                 ? {
                     channel: params.channel,
-                    to: params.to,
+                    to: routingTo,
                     accountId: params.accountId,
                   }
                 : undefined,

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -27,7 +28,7 @@ type StoredProofSecret = {
 
 function buildProofHeaders(token: string, agentId?: string): Record<string, string> {
   const headers: Record<string, string> = {
-    "x-share-token": token,
+    Authorization: `Bearer ${token}`,
   };
 
   if (agentId) {
@@ -104,7 +105,7 @@ export async function getProofDocumentState(
   target: ProofTarget,
   agentId: string
 ): Promise<any> {
-  const response = await fetch(new URL(`/api/agent/${target.slug}/state`, baseUrl), {
+  const response = await fetch(new URL(`/documents/${target.slug}/state`, baseUrl), {
     headers: buildProofHeaders(target.token, agentId),
   });
 
@@ -121,13 +122,35 @@ export async function getProofDocumentState(
   return payload;
 }
 
+export async function getProofSnapshot(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string
+): Promise<any> {
+  const response = await fetch(new URL(`/documents/${target.slug}/snapshot`, baseUrl), {
+    headers: buildProofHeaders(target.token, agentId),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof snapshot fetch failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
 export async function getProofPendingEvents(
   baseUrl: string,
   target: ProofTarget,
   agentId: string,
   after = 0
 ): Promise<any> {
-  const url = new URL(`/api/agent/${target.slug}/events/pending`, baseUrl);
+  const url = new URL(`/documents/${target.slug}/events/pending`, baseUrl);
   url.searchParams.set("after", String(after));
 
   const response = await fetch(url, {
@@ -154,7 +177,7 @@ export async function applyProofDocumentEdit(
   operations: unknown[],
   baseUpdatedAt?: string
 ): Promise<any> {
-  const response = await fetch(new URL(`/api/agent/${target.slug}/edit`, baseUrl), {
+  const response = await fetch(new URL(`/documents/${target.slug}/edit`, baseUrl), {
     method: "POST",
     headers: {
       ...buildProofHeaders(target.token, agentId),
@@ -180,6 +203,41 @@ export async function applyProofDocumentEdit(
   return payload;
 }
 
+export async function applyProofDocumentEditV2(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string,
+  baseRevision: number,
+  operations: unknown[],
+  idempotencyKey?: string
+): Promise<any> {
+  const response = await fetch(new URL(`/documents/${target.slug}/edit/v2`, baseUrl), {
+    method: "POST",
+    headers: {
+      ...buildProofHeaders(target.token, agentId),
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey ?? randomUUID(),
+    },
+    body: JSON.stringify({
+      by: `ai:${agentId}`,
+      baseRevision,
+      operations,
+    }),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof edit v2 failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
 export async function applyProofOps(
   baseUrl: string,
   target: ProofTarget,
@@ -197,7 +255,7 @@ export async function applyProofOps(
           }
         : op;
 
-    const response = await fetch(new URL(`/api/agent/${target.slug}/ops`, baseUrl), {
+    const response = await fetch(new URL(`/documents/${target.slug}/ops`, baseUrl), {
       method: "POST",
       headers: {
         ...buildProofHeaders(target.token, agentId),
@@ -232,7 +290,7 @@ export async function ackProofEvents(
   agentId: string,
   after: number
 ): Promise<any> {
-  const response = await fetch(new URL(`/api/agent/${target.slug}/events/ack`, baseUrl), {
+  const response = await fetch(new URL(`/documents/${target.slug}/events/ack`, baseUrl), {
     method: "POST",
     headers: {
       ...buildProofHeaders(target.token, agentId),

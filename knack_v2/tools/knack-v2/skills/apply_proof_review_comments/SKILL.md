@@ -24,12 +24,14 @@ Read the latest actionable human review comments, edit the document to address t
 3. Call `get_proof_pending_events`.
 4. Identify only actionable human comment events that are new since the supplied cursor.
 5. If there are no actionable comments, say so briefly and stop.
-6. If a requested change is clear, call `apply_proof_edit` with:
-   - `baseUpdatedAt` copied from the latest state response
-   - a non-empty `operations` array using Proof structured edits
-7. Resolve each handled comment with `apply_proof_ops` using `comment.resolve`.
-8. Call `ack_proof_events` with the newest processed cursor.
-9. Reply briefly with what changed and whether any comments were left unresolved.
+6. Call `get_proof_snapshot`.
+7. If a requested change is clear, call `apply_proof_edit_v2` with:
+   - `baseRevision` copied from the latest snapshot response
+   - a non-empty `operations` array using block refs from the snapshot
+8. Use `apply_proof_edit` only as a fallback for simple unmarked string edits when v2 is not needed.
+9. Do not auto-resolve comments unless a supported Proof op for resolution is confirmed by the live deployment.
+10. Call `ack_proof_events` with the newest processed cursor only after successful handling.
+11. Reply briefly with what changed and whether any comments were intentionally left unresolved.
 
 ## Rules
 
@@ -42,7 +44,24 @@ Read the latest actionable human review comments, edit the document to address t
 
 ## Ops Guidance
 
-For `apply_proof_edit`, use Proof structured edit operations like:
+Prefer `apply_proof_edit_v2` for most document changes. Use snapshot refs and revision locking like:
+
+```json
+{
+  "baseRevision": 42,
+  "operations": [
+    {
+      "op": "replace_block",
+      "ref": "b3",
+      "block": {
+        "markdown": "Updated paragraph."
+      }
+    }
+  ]
+}
+```
+
+Use `apply_proof_edit` only for simple `/edit` string operations like:
 
 ```json
 {
@@ -61,17 +80,7 @@ Other supported structured edits include:
 
 - `append` with `section` and `content`
 - `insert` with `after` and `content`
-
-When resolving a handled comment with `apply_proof_ops`, use a low-level op with:
-
-```json
-{
-  "type": "comment.resolve",
-  "commentId": "..."
-}
-```
-
-If the event payload uses a different identifier field for the comment, use the field name provided by the event.
+- `replace_block`, `insert_after`, and `insert_before` in `edit/v2`
 
 ## Final Response
 

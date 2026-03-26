@@ -75,11 +75,12 @@ function hasActionableCommentEvents(payload) {
 }
 
 async function getPendingEvents(doc) {
-  const url = new URL(`/api/agent/${doc.slug}/events/pending`, PROOF_BASE_URL);
+  const url = new URL(`/documents/${doc.slug}/events/pending`, PROOF_BASE_URL);
   url.searchParams.set("after", String(doc.lastEventCursor ?? 0));
+  url.searchParams.set("limit", "100");
   const response = await fetch(url, {
     headers: {
-      "x-share-token": doc.token,
+      Authorization: `Bearer ${doc.token}`,
       "X-Agent-Id": POLLER_AGENT_ID,
     },
   });
@@ -103,7 +104,7 @@ async function triggerOpenClaw(doc, afterCursor) {
     `slug: ${doc.slug}`,
     `token: ${doc.token}`,
     `after: ${afterCursor}`,
-    "Check new human review comments, edit the document, resolve handled comments, and acknowledge processed events.",
+    "Check new human review comments, edit the document when the requested change is clear, and acknowledge processed events that were handled successfully.",
     "Do not post conversational reply comments.",
   ];
 
