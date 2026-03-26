@@ -10,6 +10,11 @@ export type ProofCreateDocumentResult = {
   accessRole?: string;
 };
 
+export type ProofTarget = {
+  slug: string;
+  token: string;
+};
+
 type StoredProofSecret = {
   slug: string;
   title: string;
@@ -19,6 +24,45 @@ type StoredProofSecret = {
   tokenUrl?: string;
   createdAt: string;
 };
+
+function buildProofHeaders(token: string, agentId?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    "x-share-token": token,
+  };
+
+  if (agentId) {
+    headers["X-Agent-Id"] = agentId;
+  }
+
+  return headers;
+}
+
+async function parseProofResponse(response: Response): Promise<any> {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return text;
+  }
+}
+
+export function parseProofUrl(url: string): ProofTarget {
+  const parsed = new URL(url);
+  const token = parsed.searchParams.get("token");
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  const dIndex = parts.findIndex((part) => part === "d");
+  const slug = dIndex >= 0 ? parts[dIndex + 1] : parts.at(-1);
+
+  if (!slug || !token) {
+    throw new Error("Proof URL must include both slug and token");
+  }
+
+  return {
+    slug,
+    token,
+  };
+}
 
 export async function createProofDocument(
   baseUrl: string,
@@ -50,6 +94,144 @@ export async function createProofDocument(
 
   if (!payload.success || !payload.slug) {
     throw new Error("Proof document creation failed: missing slug in response");
+  }
+
+  return payload;
+}
+
+export async function getProofDocumentState(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string
+): Promise<any> {
+  const response = await fetch(new URL(`/api/agent/${target.slug}/state`, baseUrl), {
+    headers: buildProofHeaders(target.token, agentId),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof state fetch failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
+export async function getProofPendingEvents(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string,
+  after = 0
+): Promise<any> {
+  const url = new URL(`/api/agent/${target.slug}/events/pending`, baseUrl);
+  url.searchParams.set("after", String(after));
+
+  const response = await fetch(url, {
+    headers: buildProofHeaders(target.token, agentId),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof pending events fetch failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
+export async function applyProofDocumentEdit(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string,
+  instruction: string
+): Promise<any> {
+  const response = await fetch(new URL(`/api/agent/${target.slug}/edit`, baseUrl), {
+    method: "POST",
+    headers: {
+      ...buildProofHeaders(target.token, agentId),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      instruction,
+    }),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof edit failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
+export async function applyProofOps(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string,
+  ops: unknown[]
+): Promise<any> {
+  const response = await fetch(new URL(`/api/agent/${target.slug}/ops`, baseUrl), {
+    method: "POST",
+    headers: {
+      ...buildProofHeaders(target.token, agentId),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ops,
+    }),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof ops failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
+  }
+
+  return payload;
+}
+
+export async function ackProofEvents(
+  baseUrl: string,
+  target: ProofTarget,
+  agentId: string,
+  after: number
+): Promise<any> {
+  const response = await fetch(new URL(`/api/agent/${target.slug}/events/ack`, baseUrl), {
+    method: "POST",
+    headers: {
+      ...buildProofHeaders(target.token, agentId),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      after,
+    }),
+  });
+
+  const payload = await parseProofResponse(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Proof event ack failed: HTTP ${response.status} ${
+        typeof payload === "string" ? payload : JSON.stringify(payload)
+      }`
+    );
   }
 
   return payload;

@@ -53,6 +53,10 @@ Phase 2:
    - `PROOF_PUBLIC_BASE_URL`
    - `PROOF_CORS_ALLOW_ORIGINS`
    - `PROOF_COLLAB_SIGNING_SECRET`
+   - `OPENCLAW_HOOK_TOKEN`
+   - optional `OPENCLAW_AGENT_ID`
+   - optional `POLLER_AGENT_ID`
+   - optional `POLLER_INTERVAL_SECONDS`
    - optional `PROOF_GIT_REF`
 5. Start only the v2 stack:
 
@@ -109,7 +113,30 @@ For this setup:
 - the plugin rewrites returned Proof links from the internal API host to the public browser host before sending them back
 - the Proof container itself uses `PROOF_PUBLIC_ORIGIN`, `PROOF_PUBLIC_BASE_URL`, and `PROOF_CORS_ALLOW_ORIGINS` so share pages, browser asset requests, and embedded collab websocket URLs resolve against the public host instead of localhost defaults
 - set `PROOF_COLLAB_SIGNING_SECRET` to a stable random value so collab/browser session signing survives restarts
+- the review poller reads `/shared-state/proof/tracked-docs.json` and wakes OpenClaw only when actionable review comments are present
+- OpenClaw hooks must be enabled and reachable on the container network for the poller to wake the agent
 
 `tokenUrl` is the safest "just open this link" option because it already carries the document access token.
 
 There is no separate `PROOF_API_KEY` in the current v2 app config. The app keeps owner-level control by storing the per-document `ownerSecret` returned by Proof when the document is created.
+
+## Review Comment Automation
+
+The v2 stack now includes a thin `proof-comment-poller` sidecar.
+
+Its job is:
+
+1. Read tracked docs from `/shared-state/proof/tracked-docs.json`
+2. Poll Proof for new pending events every 15 minutes
+3. Exit silently when no new human comments exist
+4. Wake OpenClaw through `/hooks/agent` only when there is actual review work
+
+OpenClaw then uses the `apply_proof_review_comments` skill plus the Proof review tools to:
+
+- inspect the latest document state
+- inspect pending review events
+- edit the document
+- resolve handled comments
+- acknowledge processed events
+
+This keeps token usage lower than a full scheduled agent turn every 15 minutes.

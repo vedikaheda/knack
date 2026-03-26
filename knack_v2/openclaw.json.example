@@ -11,6 +11,21 @@
   "tools": {
     "profile": "full"
   },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "all"
+  },
+  "hooks": {
+    "enabled": true,
+    "path": "/hooks",
+    "token": "replace-with-the-same-hook-secret-as-your-env",
+    "allowRequestSessionKey": true,
+    "allowedSessionKeyPrefixes": [
+      "agent:",
+      "hook:"
+    ]
+  },
   "channels": {
     "slack": {
       "mode": "socket",
@@ -42,7 +57,14 @@
           "PROOF_BASE_URL": "http://proof:4000",
           "PROOF_PUBLIC_URL": "http://your-vm-ip:4000",
           "PROOF_OWNER_SECRET_STORE_PATH": ".local/proof/owner-secrets.json",
-          "KNACK_AUDIT_LOG_PATH": ".local/audit/events.jsonl"
+          "PROOF_TRACKED_DOCS_PATH": "/shared-state/proof/tracked-docs.json",
+          "KNACK_AUDIT_LOG_PATH": ".local/audit/events.jsonl",
+          "KNACK_SLACK_CHANNEL": "slack",
+          "KNACK_SLACK_TO": "user:replace_me",
+          "KNACK_SLACK_ACCOUNT_ID": "default",
+          "KNACK_SESSION_KEY": "agent:main:slack:direct:replace_me",
+          "KNACK_REVIEW_WATCH_DAYS": "7",
+          "KNACK_AGENT_ID": "knack"
         }
       }
     }

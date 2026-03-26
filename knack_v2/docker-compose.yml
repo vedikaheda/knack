@@ -11,8 +11,36 @@ services:
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
     volumes:
       - openclaw_data_v2:/home/node/.openclaw
+      - ./state:/shared-state
       - ./tools/knack-v2:/home/node/.openclaw/workspace/knack-v2-plugin
     depends_on:
+      - proof
+
+  proof-comment-poller:
+    image: node:22-alpine
+    container_name: knack_v2_proof_comment_poller
+    restart: unless-stopped
+    working_dir: /app
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          node /app/scripts/poll-proof-comments.mjs
+          sleep ${POLLER_INTERVAL_SECONDS:-900}
+        done
+    environment:
+      PROOF_BASE_URL: http://proof:4000
+      TRACKED_DOCS_PATH: /shared-state/proof/tracked-docs.json
+      OPENCLAW_HOOK_URL: http://openclaw:18789/hooks/agent
+      OPENCLAW_HOOK_TOKEN: ${OPENCLAW_HOOK_TOKEN}
+      OPENCLAW_AGENT_ID: ${OPENCLAW_AGENT_ID:-main}
+      POLLER_AGENT_ID: ${POLLER_AGENT_ID:-knack-poller}
+    volumes:
+      - ./state:/shared-state
+      - ./scripts:/app/scripts:ro
+    depends_on:
+      - openclaw
       - proof
 
   proof:

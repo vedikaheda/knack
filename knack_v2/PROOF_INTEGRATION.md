@@ -95,8 +95,16 @@ OpenClaw stores:
 
 - `.local/proof/owner-secrets.json`
 - `.local/audit/events.jsonl`
+- `/shared-state/proof/tracked-docs.json`
 
 The owner secret store maps Proof slugs to the private credentials returned at document creation time.
+
+The tracked-doc store is a shared bind-mounted file used by the thin poller and OpenClaw to coordinate:
+
+- which docs should be watched
+- the current event cursor
+- when polling should stop
+- which Slack destination/session should receive follow-up review notifications
 
 ## 7. Phase-1 Tool Surface
 
@@ -104,11 +112,9 @@ The owner secret store maps Proof slugs to the private credentials returned at d
 
 - `fetch_fireflies_transcript`
 - `create_proof_document`
-
-### Later
-
 - `get_proof_document_state`
 - `get_proof_pending_events`
+- `apply_proof_edit`
 - `apply_proof_ops`
 - `ack_proof_events`
 
@@ -117,6 +123,7 @@ The owner secret store maps Proof slugs to the private credentials returned at d
 ### Existing
 
 - `generate_brd_from_fireflies_to_proof`
+- `apply_proof_review_comments`
 
 Responsibilities:
 
@@ -131,8 +138,13 @@ The phase-1 Compose stack should include:
 
 - `openclaw`
 - `proof`
+- `proof-comment-poller`
 
-That is enough for the first version.
+The poller is intentionally a thin non-LLM worker:
+
+- it reads tracked docs from `/shared-state/proof/tracked-docs.json`
+- it polls Proof event endpoints directly
+- it only wakes OpenClaw through `/hooks/agent` when actionable human comments are present
 
 No external backend is required.
 
