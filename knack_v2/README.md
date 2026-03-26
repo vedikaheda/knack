@@ -140,3 +140,5 @@ OpenClaw then uses the `apply_proof_review_comments` skill plus the Proof review
 - acknowledge processed events
 
 This keeps token usage lower than a full scheduled agent turn every 15 minutes.
+
+Per-user Slack routing for review updates is not configured manually per document. Instead, the plugin captures the real routing/session metadata from the outbound `message:sent` hook when it sends the new Proof link to the user, and stores that against the tracked doc for later poller wakeups.

@@ -1,3 +1,4 @@
+import { registerProofRoutingHook } from "./hooks/proofRouting";
 import { registerAckProofEventsTool } from "./tools/ackProofEvents";
 import { registerApplyProofEditTool } from "./tools/applyProofEdit";
 import { registerApplyProofOpsTool } from "./tools/applyProofOps";
@@ -7,6 +8,7 @@ import { registerGetProofDocumentStateTool } from "./tools/getProofDocumentState
 import { registerGetProofPendingEventsTool } from "./tools/getProofPendingEvents";
 
 export default function registerPlugin(api: any) {
+  registerProofRoutingHook(api);
   registerFetchFirefliesTranscriptTool(api);
   registerCreateProofDocumentTool(api);
   registerGetProofDocumentStateTool(api);

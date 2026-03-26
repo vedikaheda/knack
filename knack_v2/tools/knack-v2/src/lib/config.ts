@@ -5,11 +5,8 @@ type PluginConfig = {
   PROOF_OWNER_SECRET_STORE_PATH?: string;
   PROOF_TRACKED_DOCS_PATH?: string;
   KNACK_AUDIT_LOG_PATH?: string;
-  KNACK_SLACK_CHANNEL?: string;
-  KNACK_SLACK_TO?: string;
-  KNACK_SLACK_ACCOUNT_ID?: string;
-  KNACK_SESSION_KEY?: string;
   KNACK_REVIEW_WATCH_DAYS?: string;
+  KNACK_AGENT_ID?: string;
 };
 
 function getPluginConfig(api: any): PluginConfig {

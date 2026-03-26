@@ -33,22 +33,6 @@
         "type": "string",
         "description": "Append-only JSONL audit log path"
       },
-      "KNACK_SLACK_CHANNEL": {
-        "type": "string",
-        "description": "Default outbound channel for review-update notifications"
-      },
-      "KNACK_SLACK_TO": {
-        "type": "string",
-        "description": "Default outbound Slack target such as user:U123"
-      },
-      "KNACK_SLACK_ACCOUNT_ID": {
-        "type": "string",
-        "description": "Default OpenClaw account id for outbound notifications"
-      },
-      "KNACK_SESSION_KEY": {
-        "type": "string",
-        "description": "Optional stable OpenClaw session key for review-update hooks"
-      },
       "KNACK_REVIEW_WATCH_DAYS": {
         "type": "string",
         "description": "How many days a new Proof doc should be watched for comments"

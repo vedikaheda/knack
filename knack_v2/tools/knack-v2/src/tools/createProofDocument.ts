@@ -59,20 +59,6 @@ export function registerCreateProofDocumentTool(api: any) {
     },
     async execute(_toolUseId: string, params: CreateProofDocumentArgs) {
       try {
-        await appendAuditEvent(api, {
-          event: "debug.tool_context",
-          status: "success",
-          details: {
-            tool: "create_proof_document",
-            api_keys: Object.keys(api ?? {}).sort(),
-            session: api?.session ?? null,
-            context: api?.context ?? null,
-            channel: api?.channel ?? null,
-            accountId: api?.accountId ?? null,
-            message: api?.message ?? null,
-          },
-        });
-
         const baseUrl = requireConfig(api, "PROOF_BASE_URL");
         const publicUrl = getConfig(api, "PROOF_PUBLIC_URL");
         const storePath = getConfig(
@@ -136,12 +122,6 @@ export function registerCreateProofDocumentTool(api: any) {
             pollEveryMinutes: 15,
             lastEventCursor: 0,
             enabled: true,
-            routing: {
-              channel: getConfig(api, "KNACK_SLACK_CHANNEL", "slack"),
-              to: getConfig(api, "KNACK_SLACK_TO"),
-              accountId: getConfig(api, "KNACK_SLACK_ACCOUNT_ID", "default"),
-              sessionKey: getConfig(api, "KNACK_SESSION_KEY"),
-            },
             lastUpdatedAt: createdAt,
           });
         }

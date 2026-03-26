@@ -106,6 +106,8 @@ The tracked-doc store is a shared bind-mounted file used by the thin poller and 
 - when polling should stop
 - which Slack destination/session should receive follow-up review notifications
 
+Slack routing is captured automatically by a plugin-managed `message:sent` hook when Knack sends the Proof URL back to the user. That hook stores the real `sessionKey`, `to`, `channelId`, and `accountId` against the tracked document slug so later review updates can return to the same conversation.
+
 ## 7. Phase-1 Tool Surface
 
 ### Existing
