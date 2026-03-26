@@ -14,8 +14,13 @@ Use this skill when the user provides a Fireflies transcript URL and wants a BRD
 3. Build a strict internal BRD JSON object from the transcript before writing any markdown.
 4. Make sure the BRD JSON includes every required top-level field listed below.
 5. Render that BRD JSON into a human-readable markdown BRD for Proof.
-6. Call `create_proof_document`.
-7. Return the final Proof document link to the user using the exact Slack-formatted link returned by the tool.
+6. Read the trusted inbound metadata included in the prompt.
+7. Call `create_proof_document`.
+8. Pass these values into `create_proof_document` exactly as provided:
+   - `channel`
+   - `to`
+   - `accountId` if present
+9. Return the final Proof document link to the user using the exact Slack-formatted link returned by the tool.
 
 ## BRD JSON Contract
 
@@ -212,6 +217,9 @@ Objective 2: Support both PDF and text summarization.
 - Always fetch the transcript with `fetch_fireflies_transcript`.
 - Do not try to scrape the Fireflies page manually.
 - Always create the final document with `create_proof_document`.
+- Only copy `channel`, `to`, and `accountId` from trusted inbound metadata.
+- Never guess, rewrite, or synthesize `to`.
+- If trusted inbound metadata does not include one of those fields, omit that tool argument instead of inventing a value.
 - Do not expose `ownerSecret`.
 - Do not mention internal config keys, storage paths, or raw audit logs to the user.
 - The final Proof document should reflect the full BRD schema, not a shortened outline.

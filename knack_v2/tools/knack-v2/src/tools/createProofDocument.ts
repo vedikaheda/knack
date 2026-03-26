@@ -12,6 +12,9 @@ type CreateProofDocumentArgs = {
   title: string;
   markdown: string;
   role?: string;
+  channel?: string;
+  to?: string;
+  accountId?: string;
 };
 
 function normalizeProofMarkdown(markdown: string): string {
@@ -58,6 +61,18 @@ export function registerCreateProofDocumentTool(api: any) {
           type: "string",
           description: "Optional default access role for the created share link",
           enum: ["viewer", "commenter", "editor"],
+        },
+        channel: {
+          type: "string",
+          description: "Trusted inbound channel copied from the host metadata",
+        },
+        to: {
+          type: "string",
+          description: "Trusted outbound target copied verbatim from inbound metadata",
+        },
+        accountId: {
+          type: "string",
+          description: "Trusted provider account id copied from inbound metadata when present",
         },
       },
       required: ["title", "markdown"],
@@ -129,6 +144,14 @@ export function registerCreateProofDocumentTool(api: any) {
             pollEveryMinutes: 15,
             lastEventCursor: 0,
             enabled: true,
+            routing:
+              params.channel || params.to || params.accountId
+                ? {
+                    channel: params.channel,
+                    to: params.to,
+                    accountId: params.accountId,
+                  }
+                : undefined,
             lastUpdatedAt: createdAt,
           });
         }
