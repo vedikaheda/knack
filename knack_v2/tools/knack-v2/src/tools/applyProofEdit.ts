@@ -7,24 +7,33 @@ type ApplyProofEditArgs = {
   proofUrl?: string;
   slug?: string;
   token?: string;
-  instruction: string;
+  baseUpdatedAt?: string;
+  operations: Array<Record<string, unknown>>;
   agentId?: string;
 };
 
 export function registerApplyProofEditTool(api: any) {
   api.registerTool({
     name: "apply_proof_edit",
-    description: "Apply an edit instruction to a Proof document",
+    description: "Apply structured edit operations to a Proof document",
     parameters: {
       type: "object",
       properties: {
         proofUrl: { type: "string" },
         slug: { type: "string" },
         token: { type: "string" },
-        instruction: { type: "string" },
+        baseUpdatedAt: { type: "string" },
+        operations: {
+          type: "array",
+          items: {
+            type: "object",
+          },
+          description:
+            "Structured Proof edit operations such as append, replace, or insert",
+        },
         agentId: { type: "string" },
       },
-      required: ["instruction"],
+      required: ["operations"],
     },
     async execute(_toolUseId: string, params: ApplyProofEditArgs) {
       try {
@@ -35,7 +44,8 @@ export function registerApplyProofEditTool(api: any) {
           baseUrl,
           target,
           agentId!,
-          params.instruction
+          params.operations,
+          params.baseUpdatedAt
         );
 
         await appendAuditEvent(api, {
@@ -43,6 +53,7 @@ export function registerApplyProofEditTool(api: any) {
           status: "success",
           details: {
             slug: target.slug,
+            operationCount: params.operations.length,
           },
         });
 
@@ -50,7 +61,7 @@ export function registerApplyProofEditTool(api: any) {
           content: [
             {
               type: "text",
-              text: `Applied an edit to Proof document ${target.slug}.`,
+              text: `Applied ${params.operations.length} edit operation(s) to Proof document ${target.slug}.`,
             },
           ],
           structuredContent: payload,

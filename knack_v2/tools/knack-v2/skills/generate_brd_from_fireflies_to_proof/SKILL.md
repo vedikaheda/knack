@@ -19,6 +19,8 @@ Use this skill when the user provides a Fireflies transcript URL and wants a BRD
 8. Pass these values into `create_proof_document` exactly as provided:
    - `channel`
    - `to`
+   - `from` if present
+   - `chat_id` if present
    - `accountId` if present
 9. Return the final Proof document link to the user using the exact Slack-formatted link returned by the tool.
 
@@ -217,8 +219,9 @@ Objective 2: Support both PDF and text summarization.
 - Always fetch the transcript with `fetch_fireflies_transcript`.
 - Do not try to scrape the Fireflies page manually.
 - Always create the final document with `create_proof_document`.
-- Only copy `channel`, `to`, and `accountId` from trusted inbound metadata.
+- Only copy `channel`, `to`, `from`, `chat_id`, and `accountId` from trusted inbound metadata.
 - Never guess, rewrite, or synthesize `to`.
+- Never guess, rewrite, or synthesize `from` or `chat_id`.
 - If trusted inbound metadata does not include one of those fields, omit that tool argument instead of inventing a value.
 - Do not expose `ownerSecret`.
 - Do not mention internal config keys, storage paths, or raw audit logs to the user.

@@ -1,5 +1,6 @@
 import { appendAuditEvent } from "../lib/audit";
 import { getConfig, requireConfig } from "../lib/config";
+import { updateTrackedProofDocument } from "../lib/proofTracking";
 import { ackProofEvents, applyProofOps } from "../lib/proof";
 import { resolveProofTargetInput } from "../lib/proofTarget";
 
@@ -43,6 +44,15 @@ export function registerApplyProofOpsTool(api: any) {
         let ackPayload: any = null;
         if (typeof params.ackAfter === "number") {
           ackPayload = await ackProofEvents(baseUrl, target, agentId!, params.ackAfter);
+          const trackedDocsPath = getConfig(
+            api,
+            "PROOF_TRACKED_DOCS_PATH",
+            ".local/proof/tracked-docs.json"
+          )!;
+          await updateTrackedProofDocument(trackedDocsPath, target.slug, {
+            lastEventCursor: params.ackAfter,
+            lastCheckedAt: new Date().toISOString(),
+          });
         }
 
         await appendAuditEvent(api, {
@@ -50,6 +60,7 @@ export function registerApplyProofOpsTool(api: any) {
           status: "success",
           details: {
             slug: target.slug,
+            op_count: params.ops.length,
             ack_after: params.ackAfter ?? null,
           },
         });
@@ -58,7 +69,7 @@ export function registerApplyProofOpsTool(api: any) {
           content: [
             {
               type: "text",
-              text: `Applied Proof ops for ${target.slug}.`,
+              text: `Applied ${params.ops.length} Proof op(s) for ${target.slug}.`,
             },
           ],
           structuredContent: {

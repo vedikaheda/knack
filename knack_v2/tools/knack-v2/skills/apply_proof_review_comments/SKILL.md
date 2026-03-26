@@ -24,7 +24,9 @@ Read the latest actionable human review comments, edit the document to address t
 3. Call `get_proof_pending_events`.
 4. Identify only actionable human comment events that are new since the supplied cursor.
 5. If there are no actionable comments, say so briefly and stop.
-6. If a requested change is clear, call `apply_proof_edit` with a concise instruction grounded in the document and the comments.
+6. If a requested change is clear, call `apply_proof_edit` with:
+   - `baseUpdatedAt` copied from the latest state response
+   - a non-empty `operations` array using Proof structured edits
 7. Resolve each handled comment with `apply_proof_ops` using `comment.resolve`.
 8. Call `ack_proof_events` with the newest processed cursor.
 9. Reply briefly with what changed and whether any comments were left unresolved.
@@ -39,6 +41,26 @@ Read the latest actionable human review comments, edit the document to address t
 - Keep the final response short and outcome-focused.
 
 ## Ops Guidance
+
+For `apply_proof_edit`, use Proof structured edit operations like:
+
+```json
+{
+  "baseUpdatedAt": "2026-02-16T12:00:00.000Z",
+  "operations": [
+    {
+      "op": "replace",
+      "search": "old text to find exactly",
+      "content": "new replacement text"
+    }
+  ]
+}
+```
+
+Other supported structured edits include:
+
+- `append` with `section` and `content`
+- `insert` with `after` and `content`
 
 When resolving a handled comment with `apply_proof_ops`, use a low-level op with:
 

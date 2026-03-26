@@ -14,6 +14,8 @@ type CreateProofDocumentArgs = {
   role?: string;
   channel?: string;
   to?: string;
+  from?: string;
+  chat_id?: string;
   accountId?: string;
 };
 
@@ -69,6 +71,14 @@ export function registerCreateProofDocumentTool(api: any) {
         to: {
           type: "string",
           description: "Trusted outbound target copied verbatim from inbound metadata",
+        },
+        from: {
+          type: "string",
+          description: "Trusted inbound sender copied verbatim from host metadata when present",
+        },
+        chat_id: {
+          type: "string",
+          description: "Trusted inbound chat identifier copied verbatim from host metadata when present",
         },
         accountId: {
           type: "string",
@@ -129,6 +139,19 @@ export function registerCreateProofDocumentTool(api: any) {
             slug: payload.slug,
             title: params.title,
             document_url: documentUrl,
+          },
+        });
+
+        await appendAuditEvent(api, {
+          event: "proof.create_document_routing_debug",
+          status: "success",
+          details: {
+            slug: payload.slug,
+            channel: params.channel ?? null,
+            to: params.to ?? null,
+            from: params.from ?? null,
+            chat_id: params.chat_id ?? null,
+            accountId: params.accountId ?? null,
           },
         });
 

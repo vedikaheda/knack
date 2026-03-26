@@ -151,7 +151,8 @@ export async function applyProofDocumentEdit(
   baseUrl: string,
   target: ProofTarget,
   agentId: string,
-  instruction: string
+  operations: unknown[],
+  baseUpdatedAt?: string
 ): Promise<any> {
   const response = await fetch(new URL(`/api/agent/${target.slug}/edit`, baseUrl), {
     method: "POST",
@@ -160,7 +161,9 @@ export async function applyProofDocumentEdit(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      instruction,
+      by: `ai:${agentId}`,
+      ...(baseUpdatedAt ? { baseUpdatedAt } : {}),
+      operations,
     }),
   });
 
@@ -183,28 +186,44 @@ export async function applyProofOps(
   agentId: string,
   ops: unknown[]
 ): Promise<any> {
-  const response = await fetch(new URL(`/api/agent/${target.slug}/ops`, baseUrl), {
-    method: "POST",
-    headers: {
-      ...buildProofHeaders(target.token, agentId),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ops,
-    }),
-  });
+  const results: any[] = [];
 
-  const payload = await parseProofResponse(response);
+  for (const op of ops) {
+    const payloadWithBy =
+      op && typeof op === "object" && !Array.isArray(op)
+        ? {
+            by: `ai:${agentId}`,
+            ...(op as Record<string, unknown>),
+          }
+        : op;
 
-  if (!response.ok) {
-    throw new Error(
-      `Proof ops failed: HTTP ${response.status} ${
-        typeof payload === "string" ? payload : JSON.stringify(payload)
-      }`
-    );
+    const response = await fetch(new URL(`/api/agent/${target.slug}/ops`, baseUrl), {
+      method: "POST",
+      headers: {
+        ...buildProofHeaders(target.token, agentId),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payloadWithBy),
+    });
+
+    const payload = await parseProofResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        `Proof ops failed: HTTP ${response.status} ${
+          typeof payload === "string" ? payload : JSON.stringify(payload)
+        }`
+      );
+    }
+
+    results.push(payload);
   }
 
-  return payload;
+  return {
+    success: true,
+    count: results.length,
+    results,
+  };
 }
 
 export async function ackProofEvents(
@@ -220,7 +239,8 @@ export async function ackProofEvents(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      after,
+      upToId: after,
+      by: `ai:${agentId}`,
     }),
   });
 
