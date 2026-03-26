@@ -46,11 +46,13 @@ export function registerGetProofPendingEventsTool(api: any) {
           },
         });
 
+        const textPayload = JSON.stringify(payload, null, 2);
+
         return {
           content: [
             {
               type: "text",
-              text: `Fetched pending Proof events for ${target.slug}.`,
+              text: `Fetched pending Proof events for ${target.slug}.\n\n${textPayload}`,
             },
           ],
           structuredContent: payload,

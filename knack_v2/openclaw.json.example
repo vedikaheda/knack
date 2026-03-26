@@ -24,7 +24,10 @@
     "allowedSessionKeyPrefixes": [
       "agent:",
       "hook:"
-    ]
+    ],
+    "internal": {
+      "enabled": true
+    }
   },
   "channels": {
     "slack": {

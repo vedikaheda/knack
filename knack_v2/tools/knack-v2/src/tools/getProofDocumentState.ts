@@ -38,11 +38,13 @@ export function registerGetProofDocumentStateTool(api: any) {
           },
         });
 
+        const textPayload = JSON.stringify(payload, null, 2);
+
         return {
           content: [
             {
               type: "text",
-              text: `Fetched Proof document state for ${target.slug}.`,
+              text: `Fetched Proof document state for ${target.slug}.\n\n${textPayload}`,
             },
           ],
           structuredContent: payload,
