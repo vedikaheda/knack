@@ -61,6 +61,12 @@
           "PROOF_PUBLIC_URL": "http://your-vm-ip:4000",
           "PROOF_OWNER_SECRET_STORE_PATH": ".local/proof/owner-secrets.json",
           "PROOF_TRACKED_DOCS_PATH": "/shared-state/proof/tracked-docs.json",
+          "ATTENDEE_BASE_URL": "http://attendee-app:8000",
+          "ATTENDEE_API_KEY": "replace_me_after_creating_it_in_attendee_ui",
+          "ATTENDEE_DEFAULT_BOT_NAME": "Knack",
+          "ATTENDEE_TRACKED_BOTS_PATH": "/shared-state/attendee/tracked-bots.json",
+          "ATTENDEE_SARVAM_LANGUAGE_CODE": "en-IN",
+          "ATTENDEE_SARVAM_MODEL": "saarika:v2.5",
           "KNACK_AUDIT_LOG_PATH": ".local/audit/events.jsonl",
           "KNACK_REVIEW_WATCH_DAYS": "7",
           "KNACK_AGENT_ID": "knack"

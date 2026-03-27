@@ -1,3 +1,25 @@
+x-attendee-common: &attendee-common
+  image: knack_v2_attendee:${ATTENDEE_IMAGE_TAG:-latest}
+  build:
+    context: ./attendee
+  restart: unless-stopped
+  environment: &attendee-env
+    DATABASE_URL: postgres://${ATTENDEE_POSTGRES_USER:-attendee}:${ATTENDEE_POSTGRES_PASSWORD:-attendee}@attendee-postgres:5432/${ATTENDEE_POSTGRES_DB:-attendee}
+    REDIS_URL: redis://attendee-redis:6379/5
+    DJANGO_SETTINGS_MODULE: attendee.settings.production
+    DJANGO_SECRET_KEY: ${ATTENDEE_DJANGO_SECRET_KEY}
+    CREDENTIALS_ENCRYPTION_KEY: ${ATTENDEE_CREDENTIALS_ENCRYPTION_KEY}
+    POSTGRES_SSL_REQUIRE: "false"
+    DJANGO_SSL_REQUIRE: ${ATTENDEE_DJANGO_SSL_REQUIRE:-false}
+    DISABLE_EMAIL: ${ATTENDEE_DISABLE_EMAIL:-true}
+    SITE_DOMAIN: ${ATTENDEE_SITE_DOMAIN:-localhost:8000}
+    TIME_ZONE: ${ATTENDEE_TIME_ZONE:-UTC}
+    ATTENDEE_LOG_LEVEL: ${ATTENDEE_LOG_LEVEL:-INFO}
+    ATTENDEE_LOG_FORMAT: ${ATTENDEE_LOG_FORMAT:-json}
+  depends_on:
+    - attendee-postgres
+    - attendee-redis
+
 services:
   openclaw:
     image: ghcr.io/openclaw/openclaw:2026.3.1
@@ -14,7 +36,62 @@ services:
       - ./state:/shared-state
       - ./tools/knack-v2:/home/node/.openclaw/workspace/knack-v2-plugin
     depends_on:
+      - attendee-app
       - proof
+
+  attendee-postgres:
+    image: postgres:15.3-alpine
+    container_name: knack_v2_attendee_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ATTENDEE_POSTGRES_DB:-attendee}
+      POSTGRES_USER: ${ATTENDEE_POSTGRES_USER:-attendee}
+      POSTGRES_PASSWORD: ${ATTENDEE_POSTGRES_PASSWORD:-attendee}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - attendee_postgres_data:/var/lib/postgresql/data
+
+  attendee-redis:
+    image: redis:7-alpine
+    container_name: knack_v2_attendee_redis
+    restart: unless-stopped
+    volumes:
+      - attendee_redis_data:/data
+
+  attendee-app:
+    <<: *attendee-common
+    container_name: knack_v2_attendee_app
+    ports:
+      - "${ATTENDEE_PUBLIC_PORT:-8000}:8000"
+    command:
+      - sh
+      - -lc
+      - |
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput &&
+        gunicorn attendee.wsgi --bind 0.0.0.0:8000
+
+  attendee-worker:
+    <<: *attendee-common
+    container_name: knack_v2_attendee_worker
+    environment:
+      <<: *attendee-env
+      ENABLE_CHROME_SANDBOX: ${ATTENDEE_ENABLE_CHROME_SANDBOX:-false}
+    command:
+      - celery
+      - -A
+      - attendee
+      - worker
+      - -l
+      - info
+
+  attendee-scheduler:
+    <<: *attendee-common
+    container_name: knack_v2_attendee_scheduler
+    command:
+      - python
+      - manage.py
+      - run_scheduler
 
   proof-comment-poller:
     image: node:22-alpine
@@ -43,6 +120,33 @@ services:
       - openclaw
       - proof
 
+  attendee-transcript-watcher:
+    image: node:22-alpine
+    container_name: knack_v2_attendee_transcript_watcher
+    restart: unless-stopped
+    working_dir: /app
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          node /app/scripts/poll-attendee-transcripts.mjs
+          sleep ${ATTENDEE_POLLER_INTERVAL_SECONDS:-60}
+        done
+    environment:
+      ATTENDEE_BASE_URL: ${ATTENDEE_BASE_URL}
+      ATTENDEE_API_KEY: ${ATTENDEE_API_KEY}
+      ATTENDEE_TRACKED_BOTS_PATH: ${ATTENDEE_TRACKED_BOTS_PATH:-/shared-state/attendee/tracked-bots.json}
+      OPENCLAW_HOOK_URL: http://openclaw:18789/hooks/agent
+      OPENCLAW_HOOK_TOKEN: ${OPENCLAW_HOOK_TOKEN}
+      OPENCLAW_AGENT_ID: ${OPENCLAW_AGENT_ID:-main}
+    volumes:
+      - ./state:/shared-state
+      - ./scripts:/app/scripts:ro
+    depends_on:
+      - attendee-app
+      - openclaw
+
   proof:
     build:
       context: ./proof
@@ -66,3 +170,5 @@ services:
 volumes:
   openclaw_data_v2:
   proof_data:
+  attendee_postgres_data:
+  attendee_redis_data:

@@ -2,7 +2,7 @@
   "id": "knack-v2",
   "name": "Knack V2",
   "version": "0.1.0",
-  "description": "OpenClaw tools for Fireflies transcript retrieval and Proof document creation",
+  "description": "OpenClaw tools for Fireflies and Attendee transcript retrieval plus Proof document creation",
   "skills": [
     "skills"
   ],
@@ -28,6 +28,30 @@
       "PROOF_TRACKED_DOCS_PATH": {
         "type": "string",
         "description": "Local JSON file used to persist tracked Proof docs for review polling"
+      },
+      "ATTENDEE_BASE_URL": {
+        "type": "string",
+        "description": "Base URL for the Attendee deployment"
+      },
+      "ATTENDEE_API_KEY": {
+        "type": "string",
+        "description": "Attendee API key used to create bots and fetch transcripts"
+      },
+      "ATTENDEE_DEFAULT_BOT_NAME": {
+        "type": "string",
+        "description": "Default bot display name for Attendee meeting joins"
+      },
+      "ATTENDEE_TRACKED_BOTS_PATH": {
+        "type": "string",
+        "description": "Local JSON file used to persist tracked Attendee bots for transcript polling"
+      },
+      "ATTENDEE_SARVAM_LANGUAGE_CODE": {
+        "type": "string",
+        "description": "Sarvam language code passed to Attendee transcription settings"
+      },
+      "ATTENDEE_SARVAM_MODEL": {
+        "type": "string",
+        "description": "Sarvam model passed to Attendee transcription settings"
       },
       "KNACK_AUDIT_LOG_PATH": {
         "type": "string",
